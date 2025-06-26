@@ -1,46 +1,87 @@
-![Banner image](https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png)
+# n8n-nodes-instantly
 
-# n8n-nodes-starter
+This is an n8n community node for integrating with the [Instantly](https://instantly.ai) API. It allows you to create, retrieve, and manage your Instantly resources directly from n8n workflows.
 
-This repo contains example nodes to help you get started building your own custom integrations for [n8n](n8n.io). It includes the node linter and other dependencies.
+## Installation
 
-To make your custom node available to the community, you must create it as an npm package, and [submit it to the npm registry](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry).
+### Community Nodes (Recommended)
 
-## Prerequisites
+For users on n8n v0.187.0+, you can install this node directly through the n8n interface:
 
-You need the following installed on your development machine:
+1. Go to **Settings > Community Nodes**
+2. Click **Install**
+3. Enter `n8n-nodes-instantly` and click **Download**
 
-* [git](https://git-scm.com/downloads)
-* Node.js and pnpm. Minimum version Node 18. You can find instructions on how to install both using nvm (Node Version Manager) for Linux, Mac, and WSL [here](https://github.com/nvm-sh/nvm). For Windows users, refer to Microsoft's guide to [Install NodeJS on Windows](https://docs.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-windows).
-* Install n8n with:
-  ```
-  pnpm install n8n -g
-  ```
-* Recommended: follow n8n's guide to [set up your development environment](https://docs.n8n.io/integrations/creating-nodes/build/node-development-environment/).
+### Manual Installation
 
-## Using this starter
+To install this node manually:
 
-These are the basic steps for working with the starter. For detailed guidance on creating and publishing nodes, refer to the [documentation](https://docs.n8n.io/integrations/creating-nodes/).
+```bash
+npm install n8n-nodes-instantly
+```
 
-1. [Generate a new repository](https://github.com/n8n-io/n8n-nodes-starter/generate) from this template repository.
-2. Clone your new repo:
+### Development Testing
+
+For development and testing:
+
+1. Clone this repository
+2. Navigate to the project directory
+3. Install dependencies:
+   ```bash
+   pnpm install
    ```
-   git clone https://github.com/<your organization>/<your-repo-name>.git
+4. Build the project:
+   ```bash
+   pnpm build
    ```
-3. Run `pnpm i` to install dependencies.
-4. Open the project in your editor.
-5. Browse the examples in `/nodes` and `/credentials`. Modify the examples, or replace them with your own nodes.
-6. Update the `package.json` to match your details.
-7. Run `pnpm lint` to check for errors or `pnpm lintfix` to automatically fix errors when possible.
-8. Test your node locally. Refer to [Run your node locally](https://docs.n8n.io/integrations/creating-nodes/test/run-node-locally/) for guidance.
-9. Replace this README with documentation for your node. Use the [README_TEMPLATE](README_TEMPLATE.md) to get started.
-10. Update the LICENSE file to use your details.
-11. [Publish](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry) your package to npm.
+5. Link the project to your n8n installation:
+   ```bash
+   cd dist
+   npm link
+   ```
+6. In your n8n installation directory:
+   ```bash
+   npm link n8n-nodes-instantly
+   ```
 
-## More information
+## Usage
 
-Refer to our [documentation on creating nodes](https://docs.n8n.io/integrations/creating-nodes/) for detailed information on building your own nodes.
+1. Create an Instantly account at [instantly.ai](https://instantly.ai)
+2. Generate an API key from the Instantly dashboard
+3. In n8n, add the Instantly node to your workflow
+4. Set up the credentials using your Instantly API key
+5. Configure the node options according to your needs
+
+## Features
+
+This node supports the following resources and operations:
+
+### Campaign Operations
+- **Create**: Create a new email campaign
+- **Get**: Retrieve a specific campaign by ID
+- **Get Many**: Get a list of all campaigns
+- **Update**: Update an existing campaign
+- **Delete**: Delete a campaign
+
+### Account Operations
+- **Create**: Create a new email account
+- **Get**: Retrieve a specific account by email
+- **Get Many**: Get a list of all accounts
+- **Update**: Update an existing account
+- **Delete**: Delete an account
+
+### Lead Operations
+- **Create**: Create a new lead
+- **Get**: Retrieve a specific lead by ID
+- **Get Many**: Get a list of all leads
+- **Update**: Update an existing lead
+- **Delete**: Delete a lead
+
+## Resources
+
+- [Instantly API Documentation](https://api-docs.instantly.ai/)
+- [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/)
 
 ## License
 
-[MIT](https://github.com/n8n-io/n8n-nodes-starter/blob/master/LICENSE.md)
+[MIT](LICENSE.md)
