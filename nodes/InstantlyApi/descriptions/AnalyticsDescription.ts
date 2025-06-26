@@ -45,22 +45,6 @@ export const analyticsOperations = [
           },
         },
       },
-      {
-        name: 'Get Overall Analytics',
-        value: 'getOverallAnalytics',
-        action: 'Get overall analytics',
-        description: 'Get overall analytics data across all campaigns',
-        routing: {
-          request: {
-            method: 'GET',
-            url: '/analytics/overall',
-            qs: {
-              start_date: '={{$parameter["startDate"]}}',
-              end_date: '={{$parameter["endDate"]}}',
-            },
-          },
-        },
-      },
     ],
     default: 'getCampaignAnalytics',
   },
@@ -103,7 +87,7 @@ export const analyticsFields = [
     displayOptions: {
       show: {
         resource: ['analytics'],
-        operation: ['getCampaignAnalytics', 'getAccountAnalytics', 'getOverallAnalytics'],
+        operation: ['getCampaignAnalytics', 'getAccountAnalytics'],
       },
     },
     description: 'Start date for analytics data (ISO 8601 format)',
@@ -116,7 +100,7 @@ export const analyticsFields = [
     displayOptions: {
       show: {
         resource: ['analytics'],
-        operation: ['getCampaignAnalytics', 'getAccountAnalytics', 'getOverallAnalytics'],
+        operation: ['getCampaignAnalytics', 'getAccountAnalytics'],
       },
     },
     description: 'End date for analytics data (ISO 8601 format)',

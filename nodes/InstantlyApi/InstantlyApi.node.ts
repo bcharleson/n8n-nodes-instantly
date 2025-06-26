@@ -483,11 +483,6 @@ export class InstantlyApi implements INodeType {
 						description: 'Get analytics for a campaign',
 						action: 'Get campaign analytics',
 					},
-					{
-						name: 'Get Overall Analytics',
-						value: 'getOverallAnalytics',
-						action: 'Get overall analytics',
-					},
 				],
 				default: 'getCampaignAnalytics',
 			},
@@ -705,8 +700,6 @@ export class InstantlyApi implements INodeType {
 							queryParams.id = campaignId;
 							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/campaigns/analytics', {}, queryParams);
 						}
-					} else if (operation === 'getOverallAnalytics') {
-						responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/analytics');
 					}
 				}
 
