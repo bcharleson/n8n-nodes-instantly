@@ -173,7 +173,7 @@ export class InstantlyApi implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Instantly',
 		name: 'instantly',
-		icon: { light: 'file:instantly.svg', dark: 'file:instantly.svg' },
+		icon: 'file:instantly.svg',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
