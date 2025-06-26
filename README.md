@@ -20,30 +20,6 @@ To install this node manually:
 npm install n8n-nodes-instantly
 ```
 
-### Development Testing
-
-For development and testing:
-
-1. Clone this repository
-2. Navigate to the project directory
-3. Install dependencies:
-   ```bash
-   pnpm install
-   ```
-4. Build the project:
-   ```bash
-   pnpm build
-   ```
-5. Link the project to your n8n installation:
-   ```bash
-   cd dist
-   npm link
-   ```
-6. In your n8n installation directory:
-   ```bash
-   npm link n8n-nodes-instantly
-   ```
-
 ## Usage
 
 1. Create an Instantly account at [instantly.ai](https://instantly.ai)
