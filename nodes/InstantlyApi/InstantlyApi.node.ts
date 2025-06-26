@@ -169,6 +169,53 @@ async function getCampaigns(
 	}
 }
 
+// Helper function to get email accounts for dropdown
+async function getEmailAccounts(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	try {
+		// Get email accounts using the accounts API endpoint
+		const responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/accounts', {}, { limit: 100 });
+
+		// Handle response structure - accounts are in 'items' array for paginated responses
+		let accounts = [];
+		if (responseData.items && Array.isArray(responseData.items)) {
+			accounts = responseData.items;
+		} else if (Array.isArray(responseData)) {
+			accounts = responseData;
+		}
+
+		// Filter accounts if filter is provided
+		const filteredAccounts = accounts.filter((account: any) => {
+			if (!filter) return true;
+			const accountEmail = `${account.email || ''}`.toLowerCase();
+			const accountName = `${account.first_name || ''} ${account.last_name || ''}`.toLowerCase().trim();
+			return accountEmail.includes(filter.toLowerCase()) || accountName.includes(filter.toLowerCase());
+		});
+
+		// Map accounts to dropdown options
+		const accountOptions: INodePropertyOptions[] = filteredAccounts.map((account: any) => {
+			const displayName = account.first_name && account.last_name
+				? `${account.email} (${account.first_name} ${account.last_name})`
+				: account.email;
+			return {
+				name: displayName || `Account ${account.id}`,
+				value: account.email,
+			};
+		});
+
+		return {
+			results: accountOptions,
+		};
+	} catch (error) {
+		console.error('Error fetching email accounts for dropdown:', error);
+		return {
+			results: [],
+		};
+	}
+}
+
 export class InstantlyApi implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Instantly',
@@ -422,13 +469,53 @@ export class InstantlyApi implements INodeType {
 				},
 				options: [
 					{
-						name: 'Get Many',
+						name: 'Get Many Accounts',
 						value: 'getMany',
 						description: 'Get many email accounts',
 						action: 'Get many email accounts',
 					},
+					{
+						name: 'Get Single Account',
+						value: 'get',
+						description: 'Get a single email account by email address',
+						action: 'Get a single email account',
+					},
 				],
 				default: 'getMany',
+			},
+
+			// Email Account Selector
+			{
+				displayName: 'Email Account',
+				name: 'emailAccount',
+				type: 'resourceLocator',
+				default: { mode: 'list', value: '' },
+				required: true,
+				modes: [
+					{
+						displayName: 'From List',
+						name: 'list',
+						type: 'list',
+						placeholder: 'Select an email account...',
+						typeOptions: {
+							searchListMethod: 'getEmailAccounts',
+							searchable: true,
+						},
+					},
+					{
+						displayName: 'By Email',
+						name: 'email',
+						type: 'string',
+						placeholder: 'e.g. user@example.com',
+					},
+				],
+				displayOptions: {
+					show: {
+						resource: ['account'],
+						operation: ['get'],
+					},
+				},
+				description: 'The email account to retrieve. Choose from the list, or specify an email address.',
 			},
 
 			// Return All for accounts
@@ -585,6 +672,17 @@ export class InstantlyApi implements INodeType {
 			return campaignLocator.value || campaignLocator;
 		};
 
+		// Helper function to extract email from resourceLocator
+		const getEmailAccount = (i: number): string => {
+			const emailLocator = this.getNodeParameter('emailAccount', i) as any;
+			if (typeof emailLocator === 'string') {
+				// Backward compatibility - if it's still a string
+				return emailLocator;
+			}
+			// Extract value from resourceLocator
+			return emailLocator.value || emailLocator;
+		};
+
 		for (let i = 0; i < items.length; i++) {
 			try {
 				const resource = this.getNodeParameter('resource', i) as string;
@@ -668,6 +766,9 @@ export class InstantlyApi implements INodeType {
 							const queryParams = { limit };
 							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/accounts', {}, queryParams);
 						}
+					} else if (operation === 'get') {
+						const emailAccount = getEmailAccount(i);
+						responseData = await instantlyApiRequest.call(this, 'GET', `/api/v2/accounts/${emailAccount}`);
 					}
 				} else if (resource === 'analytics') {
 					if (operation === 'getCampaignAnalytics') {
@@ -728,6 +829,7 @@ export class InstantlyApi implements INodeType {
 	methods = {
 		listSearch: {
 			getCampaigns,
+			getEmailAccounts,
 		},
 	};
 }
