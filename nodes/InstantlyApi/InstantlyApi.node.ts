@@ -1,12 +1,63 @@
 import {
 	IExecuteFunctions,
+	ILoadOptionsFunctions,
 	INodeExecutionData,
+	INodeListSearchResult,
+	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
 	NodeOperationError,
 } from 'n8n-workflow';
 
 import { instantlyApiRequest } from '../generic.functions';
+
+// Helper function to format dates for Instantly API (YYYY-MM-DD format)
+function formatDateForApi(dateInput: any): string {
+	if (!dateInput || dateInput === '') {
+		return '';
+	}
+
+	let dateString = String(dateInput);
+
+	// Handle n8n DateTime objects that come as "[DateTime: 2025-06-26T13:52:08.271Z]"
+	if (dateString.startsWith('[DateTime: ') && dateString.endsWith(']')) {
+		dateString = dateString.slice(11, -1); // Remove "[DateTime: " and "]"
+	}
+
+	// Handle ISO datetime strings (e.g., "2025-06-19T13:52:45.316Z")
+	if (dateString.includes('T')) {
+		dateString = dateString.split('T')[0];
+	}
+
+	// Handle date strings that might have time components separated by space
+	if (dateString.includes(' ')) {
+		dateString = dateString.split(' ')[0];
+	}
+
+	// Validate the resulting date format (should be YYYY-MM-DD)
+	const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+	if (!dateRegex.test(dateString)) {
+		// Try to parse as Date and format
+		try {
+			const parsedDate = new Date(dateInput);
+			if (!isNaN(parsedDate.getTime())) {
+				// Format as YYYY-MM-DD
+				const year = parsedDate.getFullYear();
+				const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+				const day = String(parsedDate.getDate()).padStart(2, '0');
+				return `${year}-${month}-${day}`;
+			}
+		} catch (error) {
+			console.warn('Failed to parse date:', dateInput, error);
+		}
+
+		// If all parsing fails, return empty string to avoid API errors
+		console.warn('Invalid date format for Instantly API:', dateInput);
+		return '';
+	}
+
+	return dateString;
+}
 
 // Helper function for pagination
 async function paginateInstantlyApi(
@@ -77,20 +128,61 @@ async function paginateInstantlyApi(
 	return allItems;
 }
 
+// Helper function to get campaigns for dropdown
+async function getCampaigns(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	try {
+		// Get campaigns using our existing pagination function
+		const responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/campaigns', {}, { limit: 100 });
+
+		// Handle response structure - campaigns are in 'items' array for paginated responses
+		let campaigns = [];
+		if (responseData.items && Array.isArray(responseData.items)) {
+			campaigns = responseData.items;
+		} else if (Array.isArray(responseData)) {
+			campaigns = responseData;
+		}
+
+		// Filter campaigns if filter is provided
+		const filteredCampaigns = campaigns.filter((campaign: any) => {
+			if (!filter) return true;
+			const campaignName = `${campaign.name || ''}`.toLowerCase();
+			return campaignName.includes(filter.toLowerCase());
+		});
+
+		// Map campaigns to dropdown options
+		const campaignOptions: INodePropertyOptions[] = filteredCampaigns.map((campaign: any) => ({
+			name: campaign.name || `Campaign ${campaign.id}`,
+			value: campaign.id,
+		}));
+
+		return {
+			results: campaignOptions,
+		};
+	} catch (error) {
+		console.error('Error fetching campaigns for dropdown:', error);
+		return {
+			results: [],
+		};
+	}
+}
+
 export class InstantlyApi implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Instantly API',
-		name: 'instantlyApi',
-		icon: 'file:instantly.svg',
+		displayName: 'Instantly',
+		name: 'instantly',
+		icon: { light: 'file:instantly.svg', dark: 'file:instantly.svg' },
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 		description: 'Interact with Instantly API',
 		defaults: {
-			name: 'Instantly API',
+			name: 'Instantly',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: ['main' as const],
+		outputs: ['main' as const],
 		credentials: [
 			{
 				name: 'instantlyApi',
@@ -170,20 +262,38 @@ export class InstantlyApi implements INodeType {
 				default: 'create',
 			},
 
-			// Campaign ID
+			// Campaign Selector
 			{
-				displayName: 'Campaign ID',
+				displayName: 'Campaign',
 				name: 'campaignId',
-				type: 'string',
+				type: 'resourceLocator',
+				default: { mode: 'list', value: '' },
 				required: true,
-				default: '',
+				modes: [
+					{
+						displayName: 'From List',
+						name: 'list',
+						type: 'list',
+						placeholder: 'Select a campaign...',
+						typeOptions: {
+							searchListMethod: 'getCampaigns',
+							searchable: true,
+						},
+					},
+					{
+						displayName: 'By ID',
+						name: 'id',
+						type: 'string',
+						placeholder: 'e.g. 01234567-89ab-cdef-0123-456789abcdef',
+					},
+				],
 				displayOptions: {
 					show: {
 						resource: ['campaign'],
 						operation: ['get', 'update', 'delete'],
 					},
 				},
-				description: 'The ID of the campaign',
+				description: 'The campaign to operate on. Choose from the list, or specify an ID.',
 			},
 
 			// Campaign Name
@@ -382,12 +492,61 @@ export class InstantlyApi implements INodeType {
 				default: 'getCampaignAnalytics',
 			},
 
-			// Campaign ID for analytics
+			// Return All toggle for analytics
 			{
-				displayName: 'Campaign ID',
+				displayName: 'Return All',
+				name: 'returnAll',
+				type: 'boolean',
+				default: false,
+				displayOptions: {
+					show: {
+						resource: ['analytics'],
+						operation: ['getCampaignAnalytics'],
+					},
+				},
+				description: 'Whether to return analytics for all campaigns or just the selected campaign',
+			},
+
+			// Campaign Selector for analytics
+			{
+				displayName: 'Campaign',
 				name: 'campaignId',
-				type: 'string',
+				type: 'resourceLocator',
+				default: { mode: 'list', value: '' },
 				required: true,
+				modes: [
+					{
+						displayName: 'From List',
+						name: 'list',
+						type: 'list',
+						placeholder: 'Select a campaign...',
+						typeOptions: {
+							searchListMethod: 'getCampaigns',
+							searchable: true,
+						},
+					},
+					{
+						displayName: 'By ID',
+						name: 'id',
+						type: 'string',
+						placeholder: 'e.g. 01234567-89ab-cdef-0123-456789abcdef',
+					},
+				],
+				displayOptions: {
+					show: {
+						resource: ['analytics'],
+						operation: ['getCampaignAnalytics'],
+						returnAll: [false],
+					},
+				},
+				description: 'The campaign to get analytics for. Choose from the list, or specify an ID.',
+			},
+
+			// Date Range Fields for Analytics
+			{
+				displayName: 'Start Date',
+				name: 'startDate',
+				type: 'dateTime',
 				default: '',
 				displayOptions: {
 					show: {
@@ -395,7 +554,23 @@ export class InstantlyApi implements INodeType {
 						operation: ['getCampaignAnalytics'],
 					},
 				},
-				description: 'The ID of the campaign to get analytics for',
+				description: 'Start date for analytics data (YYYY-MM-DD format). Leave empty for all-time analytics.',
+				placeholder: 'e.g. 2024-01-01',
+			},
+
+			{
+				displayName: 'End Date',
+				name: 'endDate',
+				type: 'dateTime',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['analytics'],
+						operation: ['getCampaignAnalytics'],
+					},
+				},
+				description: 'End date for analytics data (YYYY-MM-DD format). Leave empty for all-time analytics.',
+				placeholder: 'e.g. 2024-12-31',
 			},
 		],
 	};
@@ -403,6 +578,17 @@ export class InstantlyApi implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
+
+		// Helper function to extract campaign ID from resourceLocator
+		const getCampaignId = (i: number): string => {
+			const campaignLocator = this.getNodeParameter('campaignId', i) as any;
+			if (typeof campaignLocator === 'string') {
+				// Backward compatibility - if it's still a string
+				return campaignLocator;
+			}
+			// Extract value from resourceLocator
+			return campaignLocator.value || campaignLocator;
+		};
 
 		for (let i = 0; i < items.length; i++) {
 			try {
@@ -418,7 +604,7 @@ export class InstantlyApi implements INodeType {
 							name,
 						});
 					} else if (operation === 'get') {
-						const campaignId = this.getNodeParameter('campaignId', i) as string;
+						const campaignId = getCampaignId(i);
 						responseData = await instantlyApiRequest.call(this, 'GET', `/api/v2/campaigns/${campaignId}`);
 					} else if (operation === 'getMany') {
 						const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
@@ -439,13 +625,13 @@ export class InstantlyApi implements INodeType {
 							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/campaigns', {}, queryParams);
 						}
 					} else if (operation === 'update') {
-						const campaignId = this.getNodeParameter('campaignId', i) as string;
+						const campaignId = getCampaignId(i);
 						const name = this.getNodeParameter('name', i) as string;
 						responseData = await instantlyApiRequest.call(this, 'PUT', `/api/v2/campaigns/${campaignId}`, {
 							name,
 						});
 					} else if (operation === 'delete') {
-						const campaignId = this.getNodeParameter('campaignId', i) as string;
+						const campaignId = getCampaignId(i);
 						responseData = await instantlyApiRequest.call(this, 'DELETE', `/api/v2/campaigns/${campaignId}`);
 					}
 				} else if (resource === 'lead') {
@@ -490,8 +676,35 @@ export class InstantlyApi implements INodeType {
 					}
 				} else if (resource === 'analytics') {
 					if (operation === 'getCampaignAnalytics') {
-						const campaignId = this.getNodeParameter('campaignId', i) as string;
-						responseData = await instantlyApiRequest.call(this, 'GET', `/api/v2/campaigns/analytics?campaign_id=${campaignId}`);
+						const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+
+						// Get date parameters and format them for the API
+						const startDateInput = this.getNodeParameter('startDate', i, '');
+						const endDateInput = this.getNodeParameter('endDate', i, '');
+
+						// Build query parameters object
+						const queryParams: any = {};
+
+						// Add date parameters if provided, using the robust date formatter
+						const formattedStartDate = formatDateForApi(startDateInput);
+						const formattedEndDate = formatDateForApi(endDateInput);
+
+						if (formattedStartDate) {
+							queryParams.start_date = formattedStartDate;
+						}
+						if (formattedEndDate) {
+							queryParams.end_date = formattedEndDate;
+						}
+
+						if (returnAll) {
+							// Get analytics for all campaigns with date filtering
+							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/campaigns/analytics', {}, queryParams);
+						} else {
+							// Get analytics for specific campaign with date filtering
+							const campaignId = getCampaignId(i);
+							queryParams.id = campaignId;
+							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/campaigns/analytics', {}, queryParams);
+						}
 					} else if (operation === 'getOverallAnalytics') {
 						responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/analytics');
 					}
@@ -518,4 +731,10 @@ export class InstantlyApi implements INodeType {
 
 		return [returnData];
 	}
+
+	methods = {
+		listSearch: {
+			getCampaigns,
+		},
+	};
 }

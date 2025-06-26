@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-instantly",
-  "version": "0.1.7371",
+  "version": "0.1.7378",
   "description": "n8n community node for Instantly API v2",
   "keywords": [
     "n8n-community-node-package",
@@ -32,7 +32,6 @@
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
     "lintfix": "eslint nodes credentials package.json --fix"
-
   },
   "files": [
     "dist"
@@ -43,14 +42,7 @@
       "dist/credentials/InstantlyApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/InstantlyApi/InstantlyApi.node.js",
-      "dist/nodes/Instantly/Instantly.node.js",
-      "dist/nodes/InstantlyAccount/InstantlyAccount.node.js",
-      "dist/nodes/InstantlyAnalytics/InstantlyAnalytics.node.js",
-      "dist/nodes/InstantlyCampaign/InstantlyCampaign.node.js",
-      "dist/nodes/InstantlyInbox/InstantlyInbox.node.js",
-      "dist/nodes/InstantlyLead/InstantlyLead.node.js",
-      "dist/nodes/InstantlyPlacementTest/InstantlyPlacementTest.node.js"
+      "dist/nodes/InstantlyApi/InstantlyApi.node.js"
     ]
   },
   "devDependencies": {
