@@ -28,7 +28,6 @@ export async function instantlyApiRequest(
 		method,
 		url: `https://api.instantly.ai${endpoint}`,
 		headers: {
-			'Content-Type': 'application/json',
 			'Accept': 'application/json',
 		},
 		qs: {
@@ -38,7 +37,11 @@ export async function instantlyApiRequest(
 		json: true,
 	};
 
-	if (!Object.keys(body).length) {
+	// Only set Content-Type and include body for requests that have data
+	if (Object.keys(body).length > 0) {
+		options.headers!['Content-Type'] = 'application/json';
+	} else {
+		// Remove body for requests without data (like DELETE)
 		delete options.body;
 	}
 

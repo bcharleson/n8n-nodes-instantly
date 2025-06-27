@@ -14,7 +14,11 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": true,
+
+    "noImplicitReturns": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "include": [
     "nodes/**/*.ts",

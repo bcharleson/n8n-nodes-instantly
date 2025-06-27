@@ -3,6 +3,7 @@ import {
 	ILoadOptionsFunctions,
 	INodeExecutionData,
 	INodeListSearchResult,
+	INodeListSearchItems,
 	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
@@ -10,6 +11,10 @@ import {
 } from 'n8n-workflow';
 
 import { instantlyApiRequest } from '../generic.functions';
+import { OperationRouter } from './operations/OperationRouter';
+import { ResourceType, OperationType } from './types/common';
+import { leadParameters } from './parameters/LeadParameters';
+import { campaignParameters } from './parameters/CampaignParameters';
 
 // Helper function to format dates for Instantly API (YYYY-MM-DD format)
 function formatDateForApi(dateInput: any): string {
@@ -216,6 +221,48 @@ async function getEmailAccounts(
 	}
 }
 
+// Helper function to get leads for dropdown
+async function getLeads(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	try {
+		// Get leads using the leads list API endpoint
+		const body: any = {
+			limit: 100,
+		};
+
+		// Add search filter if provided
+		if (filter) {
+			body.search = filter;
+		}
+
+		const response = await instantlyApiRequest.call(this, 'POST', '/api/v2/leads/list', body);
+
+		const leadOptions: INodeListSearchItems[] = [];
+
+		if (response.items && Array.isArray(response.items)) {
+			for (const lead of response.items) {
+				const name = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || lead.email || 'Unknown Lead';
+				const value = lead.id;
+				leadOptions.push({
+					name: `${name} (${lead.email || 'No email'})`,
+					value,
+				});
+			}
+		}
+
+		return {
+			results: leadOptions,
+		};
+	} catch (error) {
+		console.error('Error fetching leads for dropdown:', error);
+		return {
+			results: [],
+		};
+	}
+}
+
 export class InstantlyApi implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Instantly',
@@ -228,8 +275,8 @@ export class InstantlyApi implements INodeType {
 		defaults: {
 			name: 'Instantly',
 		},
-		inputs: ['main' as const],
-		outputs: ['main' as const],
+		inputs: ['main'] as any,
+		outputs: ['main'] as any,
 		credentials: [
 			{
 				name: 'instantlyApi',
@@ -263,198 +310,11 @@ export class InstantlyApi implements INodeType {
 				default: 'campaign',
 			},
 
-			// CAMPAIGN OPERATIONS
-			{
-				displayName: 'Operation',
-				name: 'operation',
-				type: 'options',
-				noDataExpression: true,
-				displayOptions: {
-					show: {
-						resource: ['campaign'],
-					},
-				},
-				options: [
-					{
-						name: 'Create',
-						value: 'create',
-						description: 'Create a campaign',
-						action: 'Create a campaign',
-					},
-					{
-						name: 'Delete',
-						value: 'delete',
-						description: 'Delete a campaign',
-						action: 'Delete a campaign',
-					},
-					{
-						name: 'Get',
-						value: 'get',
-						description: 'Get a campaign',
-						action: 'Get a campaign',
-					},
-					{
-						name: 'Get Many',
-						value: 'getMany',
-						description: 'Get many campaigns',
-						action: 'Get many campaigns',
-					},
-					{
-						name: 'Update',
-						value: 'update',
-						description: 'Update a campaign',
-						action: 'Update a campaign',
-					},
-				],
-				default: 'create',
-			},
+			// CAMPAIGN OPERATIONS - Using modular parameters
+			...campaignParameters,
 
-			// Campaign Selector
-			{
-				displayName: 'Campaign',
-				name: 'campaignId',
-				type: 'resourceLocator',
-				default: { mode: 'list', value: '' },
-				required: true,
-				modes: [
-					{
-						displayName: 'From List',
-						name: 'list',
-						type: 'list',
-						placeholder: 'Select a campaign...',
-						typeOptions: {
-							searchListMethod: 'getCampaigns',
-							searchable: true,
-						},
-					},
-					{
-						displayName: 'By ID',
-						name: 'id',
-						type: 'string',
-						placeholder: 'e.g. 01234567-89ab-cdef-0123-456789abcdef',
-					},
-				],
-				displayOptions: {
-					show: {
-						resource: ['campaign'],
-						operation: ['get', 'update', 'delete'],
-					},
-				},
-				description: 'The campaign to operate on. Choose from the list, or specify an ID.',
-			},
-
-			// Campaign Name
-			{
-				displayName: 'Campaign Name',
-				name: 'name',
-				type: 'string',
-				required: true,
-				default: '',
-				displayOptions: {
-					show: {
-						resource: ['campaign'],
-						operation: ['create', 'update'],
-					},
-				},
-				description: 'The name of the campaign',
-			},
-
-			// Return All for campaigns
-			{
-				displayName: 'Return All',
-				name: 'returnAll',
-				type: 'boolean',
-				default: false,
-				displayOptions: {
-					show: {
-						resource: ['campaign'],
-						operation: ['getMany'],
-					},
-				},
-				description: 'Whether to return all results or only up to a given limit',
-			},
-
-			// Limit for campaigns
-			{
-				displayName: 'Limit',
-				name: 'limit',
-				type: 'number',
-				typeOptions: {
-					minValue: 1,
-				},
-				default: 50,
-				displayOptions: {
-					show: {
-						resource: ['campaign'],
-						operation: ['getMany'],
-						returnAll: [false],
-					},
-				},
-				description: 'Max number of results to return',
-			},
-
-			// LEAD OPERATIONS
-			{
-				displayName: 'Operation',
-				name: 'operation',
-				type: 'options',
-				noDataExpression: true,
-				displayOptions: {
-					show: {
-						resource: ['lead'],
-					},
-				},
-				options: [
-					{
-						name: 'Create',
-						value: 'create',
-						description: 'Create a lead',
-						action: 'Create a lead',
-					},
-					{
-						name: 'Delete',
-						value: 'delete',
-						description: 'Delete a lead',
-						action: 'Delete a lead',
-					},
-					{
-						name: 'Get',
-						value: 'get',
-						description: 'Get a lead',
-						action: 'Get a lead',
-					},
-					{
-						name: 'Get Many',
-						value: 'getMany',
-						description: 'Get many leads',
-						action: 'Get many leads',
-					},
-					{
-						name: 'Update',
-						value: 'update',
-						description: 'Update a lead',
-						action: 'Update a lead',
-					},
-				],
-				default: 'create',
-			},
-
-			// Lead Email
-			{
-				displayName: 'Email',
-				name: 'email',
-				type: 'string',
-				placeholder: 'name@email.com',
-				required: true,
-				default: '',
-				displayOptions: {
-					show: {
-						resource: ['lead'],
-						operation: ['create', 'get', 'update', 'delete'],
-					},
-				},
-				description: 'The email address of the lead',
-			},
+			// LEAD OPERATIONS - Using modular parameters
+			...leadParameters,
 
 			// ACCOUNT OPERATIONS
 			{
@@ -691,62 +551,11 @@ export class InstantlyApi implements INodeType {
 				let responseData;
 
 				if (resource === 'campaign') {
-					if (operation === 'create') {
-						const name = this.getNodeParameter('name', i) as string;
-						responseData = await instantlyApiRequest.call(this, 'POST', '/api/v2/campaigns', {
-							name,
-						});
-					} else if (operation === 'get') {
-						const campaignId = getCampaignId(i);
-						responseData = await instantlyApiRequest.call(this, 'GET', `/api/v2/campaigns/${campaignId}`);
-					} else if (operation === 'getMany') {
-						const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
-						const limit = this.getNodeParameter('limit', i, 50) as number;
-
-						// Validate limit doesn't exceed 100
-						if (limit > 100) {
-							throw new NodeOperationError(this.getNode(), 'Limit cannot exceed 100. Instantly API has a maximum limit of 100.', { itemIndex: i });
-						}
-
-						if (returnAll) {
-							// Get all campaigns with pagination
-							const allCampaigns = await paginateInstantlyApi(this, '/api/v2/campaigns', 'campaigns');
-							responseData = { items: allCampaigns };
-						} else {
-							// Get single page with specified limit
-							const queryParams = { limit };
-							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/campaigns', {}, queryParams);
-						}
-					} else if (operation === 'update') {
-						const campaignId = getCampaignId(i);
-						const name = this.getNodeParameter('name', i) as string;
-						responseData = await instantlyApiRequest.call(this, 'PUT', `/api/v2/campaigns/${campaignId}`, {
-							name,
-						});
-					} else if (operation === 'delete') {
-						const campaignId = getCampaignId(i);
-						responseData = await instantlyApiRequest.call(this, 'DELETE', `/api/v2/campaigns/${campaignId}`);
-					}
+					// Use the modular OperationRouter for Campaign operations
+					responseData = await OperationRouter.execute(this, i, resource as ResourceType, operation as OperationType);
 				} else if (resource === 'lead') {
-					if (operation === 'create') {
-						const email = this.getNodeParameter('email', i) as string;
-						responseData = await instantlyApiRequest.call(this, 'POST', '/api/v2/leads', {
-							email,
-						});
-					} else if (operation === 'get') {
-						const email = this.getNodeParameter('email', i) as string;
-						responseData = await instantlyApiRequest.call(this, 'GET', `/api/v2/leads/${email}`);
-					} else if (operation === 'getMany') {
-						responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/leads');
-					} else if (operation === 'update') {
-						const email = this.getNodeParameter('email', i) as string;
-						responseData = await instantlyApiRequest.call(this, 'PUT', `/api/v2/leads/${email}`, {
-							email,
-						});
-					} else if (operation === 'delete') {
-						const email = this.getNodeParameter('email', i) as string;
-						responseData = await instantlyApiRequest.call(this, 'DELETE', `/api/v2/leads/${email}`);
-					}
+					// Use the modular OperationRouter for Lead operations
+					responseData = await OperationRouter.execute(this, i, resource as ResourceType, operation as OperationType);
 				} else if (resource === 'account') {
 					if (operation === 'getMany') {
 						const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
@@ -830,6 +639,7 @@ export class InstantlyApi implements INodeType {
 		listSearch: {
 			getCampaigns,
 			getEmailAccounts,
+			getLeads,
 		},
 	};
 }
