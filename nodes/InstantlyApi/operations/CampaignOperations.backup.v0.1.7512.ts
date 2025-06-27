@@ -12,25 +12,6 @@ export class CampaignOperations {
 	 * Create a new campaign
 	 */
 	static async create(context: IExecuteFunctions, itemIndex: number): Promise<any> {
-		// HTML formatter for final API payload (after n8n expression processing)
-		const convertToHtmlFormat = (content: string): string => {
-			if (!content) return '';
-
-			// Split content by line breaks and wrap each line in div tags
-			// This ensures proper line spacing and formatting in Instantly emails
-			const lines = content.split('\n');
-			const htmlContent = lines.map(line => {
-				// Handle empty lines with a div containing a break
-				if (line.trim() === '') {
-					return '<div><br /></div>';
-				}
-				// Wrap non-empty lines in div tags
-				return `<div>${line}</div>`;
-			}).join('');
-
-			return htmlContent;
-		};
-
 		// Required fields
 		const name = context.getNodeParameter('name', itemIndex) as string;
 		const scheduleName = context.getNodeParameter('scheduleName', itemIndex) as string;
@@ -173,57 +154,23 @@ export class CampaignOperations {
 					);
 				}
 
-
-
-				// Smart content processor for hybrid variable detection (HTML conversion moved to post-processing)
-				const smartProcessContent = (content: string): string => {
+				// Helper function to preserve Instantly variables and handle line breaks
+				const processEmailContent = (content: string): string => {
 					if (!content) return '';
 
-					// Step 1: Extract and protect Instantly variables (simple word patterns)
-					const instantlyVars: { [key: string]: string } = {};
-					let varIndex = 0;
-
-					// Protect Instantly variables like {{firstName}}, {{lastName}}, {{companyName}}
-					// Pattern matches: {{word}} where word contains only letters, numbers, and underscores
-					const protectedContent = content.replace(/\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g, (match, varName) => {
-						const placeholder = `__INSTANTLY_VAR_${varIndex++}__`;
-						instantlyVars[placeholder] = match;
-						return placeholder;
-					});
-
-					// Step 2: n8n expressions (like {{ $json.fieldName }}) are processed normally by n8n
-					// since we allow expressions on these fields for automation purposes
-
-					// Step 3: Restore Instantly variables after n8n processing
-					const finalContent = protectedContent.replace(/__INSTANTLY_VAR_\d+__/g, (placeholder) => {
-						return instantlyVars[placeholder] || placeholder;
-					});
-
-					// Step 4: Keep line breaks as \n for now - HTML conversion happens after n8n expression processing
-					return finalContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+					// Convert line breaks to \n for JSON payload
+					// This ensures proper formatting in Instantly emails
+					return content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 				};
 
-
-
-				// Build sequence step object with variants array
-				// The Instantly API expects each step to have a 'variants' array for A/B testing
-				// Note: HTML conversion happens later, after n8n expression processing
+				// Build sequence step object
 				const sequenceStep: any = {
-					type: 'email', // Required by Instantly API for email steps
-					variants: [
-						{
-							subject: smartProcessContent(step.subject),
-							body: smartProcessContent(step.body),
-						}
-					]
+					subject: processEmailContent(step.subject),
+					body: processEmailContent(step.body),
 				};
 
-				// Add delay - ALL steps require a delay property
-				if (stepNumber === 1) {
-					// First step has delay of 0 (immediate)
-					sequenceStep.delay = 0;
-				} else {
-					// Subsequent steps require a delay of at least 1 day
+				// Add delay for steps after the first one
+				if (stepNumber > 1) {
 					if (!step.delay || step.delay < 1) {
 						throw new NodeOperationError(
 							context.getNode(),
@@ -246,32 +193,6 @@ export class CampaignOperations {
 			}
 		}
 
-		// Apply HTML formatting to email content right before API call
-		// This ensures it happens after all n8n expression processing is complete
-		console.log('DEBUG: About to apply HTML conversion...');
-		if (campaignData.sequences && campaignData.sequences[0] && campaignData.sequences[0].steps) {
-			console.log('DEBUG: Found sequences to process, steps count:', campaignData.sequences[0].steps.length);
-			campaignData.sequences[0].steps.forEach((step: any, stepIndex: number) => {
-				if (step.variants && step.variants.length > 0) {
-					step.variants.forEach((variant: any, variantIndex: number) => {
-						if (variant.subject) {
-							console.log(`DEBUG: Converting subject for step ${stepIndex}, variant ${variantIndex}:`, variant.subject);
-							variant.subject = convertToHtmlFormat(variant.subject);
-							console.log(`DEBUG: Subject after conversion:`, variant.subject);
-						}
-						if (variant.body) {
-							console.log(`DEBUG: Converting body for step ${stepIndex}, variant ${variantIndex}:`, variant.body);
-							variant.body = convertToHtmlFormat(variant.body);
-							console.log(`DEBUG: Body after conversion:`, variant.body);
-						}
-					});
-				}
-			});
-		} else {
-			console.log('DEBUG: No sequences found to process');
-		}
-
-		console.log('DEBUG: Final campaignData before API call:', JSON.stringify(campaignData, null, 2));
 		return await instantlyApiRequest.call(context, 'POST', '/api/v2/campaigns', campaignData);
 	}
 

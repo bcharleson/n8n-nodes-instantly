@@ -322,81 +322,6 @@ export const campaignParameters: INodeProperties[] = [
 				description: 'Auto variant select trigger setting',
 			},
 
-			// Email Sequence Builder
-			{
-				displayName: 'Email Sequence Steps',
-				name: 'sequenceSteps',
-				type: 'collection',
-				placeholder: 'Add Email Step',
-				default: {},
-				description: 'Build your email sequence step by step. First step has no delay, subsequent steps require delay in days.',
-				options: [
-					{
-						displayName: 'Sequence Steps',
-						name: 'steps',
-						type: 'fixedCollection',
-						default: {},
-						typeOptions: {
-							multipleValues: true,
-						},
-						options: [
-							{
-								displayName: 'Email Step',
-								name: 'step',
-								values: [
-									{
-										displayName: 'Step Number',
-										name: 'stepNumber',
-										type: 'number',
-										default: 1,
-										description: 'Step number in the sequence (auto-calculated, for reference)',
-										typeOptions: {
-											minValue: 1,
-										},
-									},
-									{
-										displayName: 'Delay (Days)',
-										name: 'delay',
-										type: 'number',
-										default: 1,
-										description: 'Number of days to wait before sending this email (not required for first step)',
-										displayOptions: {
-											hide: {
-												stepNumber: [1],
-											},
-										},
-										typeOptions: {
-											minValue: 1,
-											maxValue: 365,
-										},
-									},
-									{
-										displayName: 'Email Subject',
-										name: 'subject',
-										type: 'string',
-										default: '',
-										required: true,
-										description: 'Subject line for this email step. Supports n8n expressions and variables like {{firstName}}',
-										placeholder: 'e.g., Hi {{firstName}}, quick question about {{companyName}}',
-									},
-									{
-										displayName: 'Email Body',
-										name: 'body',
-										type: 'string',
-										default: '',
-										required: true,
-										typeOptions: {
-											rows: 6,
-										},
-										description: 'Email content for this step. Supports n8n expressions and variables like {{firstName}}, {{lastName}}, {{companyName}}',
-										placeholder: 'Hi {{firstName}},\n\nI hope this email finds you well...\n\nBest regards,\n{{senderName}}',
-									},
-								],
-							},
-						],
-					},
-				],
-			},
 		],
 	},
 
@@ -824,6 +749,84 @@ export const campaignParameters: INodeProperties[] = [
 				default: [],
 				placeholder: 'bcc@example.com',
 				description: 'List of email addresses to BCC on emails',
+			},
+
+			// Email Sequence Builder
+			{
+				displayName: 'Email Sequence Steps',
+				name: 'sequenceSteps',
+				type: 'collection',
+				placeholder: 'Add Email Step',
+				default: {},
+				description: 'Build your email sequence step by step. First step has no delay, subsequent steps require delay in days.',
+				options: [
+					{
+						displayName: 'Sequence Steps',
+						name: 'steps',
+						type: 'fixedCollection',
+						default: {},
+						typeOptions: {
+							multipleValues: true,
+						},
+						options: [
+							{
+								displayName: 'Email Step',
+								name: 'step',
+								values: [
+									{
+										displayName: 'Step Number',
+										name: 'stepNumber',
+										type: 'number',
+										default: 1,
+										description: 'Step number in the sequence (auto-calculated, for reference)',
+										typeOptions: {
+											minValue: 1,
+										},
+									},
+									{
+										displayName: 'Delay (Days)',
+										name: 'delay',
+										type: 'number',
+										default: 1,
+										description: 'Number of days to wait before sending this email (not required for first step)',
+										displayOptions: {
+											hide: {
+												stepNumber: [1],
+											},
+										},
+										typeOptions: {
+											minValue: 1,
+											maxValue: 365,
+										},
+									},
+									{
+										displayName: 'Email Subject',
+										name: 'subject',
+										type: 'string',
+										default: '',
+										required: true,
+										description: 'Subject line for this email step. Supports both Instantly variables ({{firstName}}) and n8n expressions ({{ $json.fieldName }}) for maximum flexibility.',
+										placeholder: 'e.g., Hi {{firstName}}, your order {{ $json.orderNumber }} is ready!',
+										hint: 'Use {{firstName}} for Instantly personalization, {{ $json.field }} for n8n data',
+									},
+									{
+										displayName: 'Email Body',
+										name: 'body',
+										type: 'string',
+										default: '',
+										required: true,
+										typeOptions: {
+											rows: 6,
+										},
+										description: 'Email content for this step. Mix Instantly variables ({{firstName}}) with n8n expressions ({{ $json.data }}) seamlessly. Line breaks are preserved.',
+										placeholder: 'Hi {{firstName}},\n\nYour order {{ $json.orderNumber }} for {{companyName}} is ready!\n\nBest regards,\n{{senderName}}',
+										hint: 'Instantly vars: {{firstName}}, {{lastName}} | n8n data: {{ $json.field }}',
+									},
+								],
+							},
+						],
+					},
+				],
 			},
 
 			// Auto Variant Select

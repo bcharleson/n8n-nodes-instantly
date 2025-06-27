@@ -86,16 +86,19 @@ export interface ICampaignSchedule {
 	end_date?: string;   // ISO date-time
 }
 
-export interface ICampaignSequenceStep {
+export interface ICampaignSequenceStepVariant {
 	subject: string;
 	body: string;
-	delay?: number; // Only required for steps after the first one
+}
+
+export interface ICampaignSequenceStep {
+	type: string; // Required by API - typically 'email' for email steps
+	delay: number; // Required by API - 0 for first step, >=1 for subsequent steps
+	variants: ICampaignSequenceStepVariant[]; // Required by API - array of email variants for A/B testing
 }
 
 export interface ICampaignSequence {
-	subject: string;
-	body: string;
-	delay?: number; // According to API spec, sequences is an array of objects with subject, body, and optional delay
+	steps: ICampaignSequenceStep[]; // The API expects sequences to contain a steps array
 }
 
 export interface ICampaignAutoVariantSelect {
