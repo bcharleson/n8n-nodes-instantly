@@ -55,7 +55,7 @@ This node supports the following resources and operations:
 
 ## Resources
 
-- [Instantly API Documentation](https://api-docs.instantly.ai/)
+- [Instantly API Documentation](https://developer.instantly.ai/api/v2)
 - [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/)
 
 ## License
