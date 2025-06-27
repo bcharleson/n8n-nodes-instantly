@@ -133,6 +133,54 @@ export class CampaignOperations {
 			};
 		}
 
+		// Handle email sequence steps
+		if (additionalFields.sequenceSteps && additionalFields.sequenceSteps.steps && additionalFields.sequenceSteps.steps.step) {
+			const sequenceSteps = Array.isArray(additionalFields.sequenceSteps.steps.step)
+				? additionalFields.sequenceSteps.steps.step
+				: [additionalFields.sequenceSteps.steps.step];
+
+			// Validate and build sequences array
+			const sequences: any[] = [];
+
+			sequenceSteps.forEach((step: any, index: number) => {
+				const stepNumber = index + 1;
+
+				// Validate required fields
+				if (!step.subject || !step.body) {
+					throw new NodeOperationError(
+						context.getNode(),
+						`Email step ${stepNumber} is missing required subject or body`,
+						{ itemIndex }
+					);
+				}
+
+				// Build sequence step object
+				const sequenceStep: any = {
+					subject: step.subject,
+					body: step.body,
+				};
+
+				// Add delay for steps after the first one
+				if (stepNumber > 1) {
+					if (!step.delay || step.delay < 1) {
+						throw new NodeOperationError(
+							context.getNode(),
+							`Email step ${stepNumber} requires a delay of at least 1 day`,
+							{ itemIndex }
+						);
+					}
+					sequenceStep.delay = step.delay;
+				}
+
+				sequences.push(sequenceStep);
+			});
+
+			// Add sequences to campaign data if any were provided
+			if (sequences.length > 0) {
+				campaignData.sequences = sequences;
+			}
+		}
+
 		return await instantlyApiRequest.call(context, 'POST', '/api/v2/campaigns', campaignData);
 	}
 

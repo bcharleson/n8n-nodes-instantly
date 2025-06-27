@@ -87,16 +87,15 @@ export interface ICampaignSchedule {
 }
 
 export interface ICampaignSequenceStep {
-	subject?: string;
-	body?: string;
-	delay?: number;
-	// Add more sequence step properties as needed
+	subject: string;
+	body: string;
+	delay?: number; // Only required for steps after the first one
 }
 
 export interface ICampaignSequence {
-	name?: string;
-	steps?: ICampaignSequenceStep[];
-	// Add more sequence properties as needed
+	subject: string;
+	body: string;
+	delay?: number; // According to API spec, sequences is an array of objects with subject, body, and optional delay
 }
 
 export interface ICampaignAutoVariantSelect {
