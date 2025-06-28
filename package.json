@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-instantly",
-  "version": "0.1.7518",
+  "version": "0.1.7523",
   "description": "n8n community node for Instantly API v2",
   "keywords": [
     "n8n-community-node-package",
@@ -20,18 +20,29 @@
     "url": "git+https://github.com/brandoncharleson/n8n-nodes-instantly.git"
   },
   "engines": {
-    "node": ">=18.10",
-    "pnpm": ">=9.1"
+    "node": ">=18.10"
   },
-  "packageManager": "pnpm@9.1.0",
   "main": "index.js",
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
     "build": "tsc && gulp build:icons",
     "dev": "tsc --watch",
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials package.json",
-    "lintfix": "eslint nodes credentials package.json --fix"
+    "lintfix": "eslint nodes credentials package.json --fix",
+    "test": "jest",
+    "test:unit": "jest __tests__/unit",
+    "test:integration": "jest __tests__/integration",
+    "test:e2e": "jest __tests__/e2e",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "type-check": "tsc --noEmit",
+    "dev:setup": "chmod +x scripts/dev-setup.sh && ./scripts/dev-setup.sh",
+    "dev:start": "cd ~/n8n-dev-environment && ./start-dev.sh",
+    "dev:restart": "cd ~/n8n-dev-environment && ./restart-dev.sh",
+    "publish:dev": "npm version prerelease --preid=dev --no-git-tag-version && npm publish --tag dev",
+    "publish:beta": "npm version prerelease --preid=beta && npm publish --tag beta",
+    "publish:rc": "npm version prerelease --preid=rc && npm publish --tag rc",
+    "publish:stable": "npm version patch && npm publish"
   },
   "files": [
     "dist"
@@ -58,8 +69,6 @@
     "n8n-workflow": "^1.82.0"
   },
   "dependencies": {
-    "axios": "^1.8.4",
-    "instantly-sdk": "^0.0.1",
-    "n8n-core": "^1.14.1"
+    "axios": "^1.8.4"
   }
 }

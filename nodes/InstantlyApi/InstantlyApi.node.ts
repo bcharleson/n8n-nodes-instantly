@@ -275,8 +275,8 @@ export class InstantlyApi implements INodeType {
 		defaults: {
 			name: 'Instantly',
 		},
-		inputs: ['main'] as any,
-		outputs: ['main'] as any,
+		inputs: ['main'],
+		outputs: ['main'],
 		credentials: [
 			{
 				name: 'instantlyApi',
