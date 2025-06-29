@@ -67,8 +67,5 @@
   },
   "peerDependencies": {
     "n8n-workflow": "^1.82.0"
-  },
-  "dependencies": {
-    "axios": "^1.8.4"
   }
 }

@@ -7,6 +7,7 @@ import {
 	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
+	NodeConnectionType,
 	NodeOperationError,
 } from 'n8n-workflow';
 
@@ -75,7 +76,7 @@ async function paginateInstantlyApi(
 	let hasMore = true;
 	let pageCount = 0;
 
-	console.log(`Starting pagination for ${resourceName}...`);
+
 
 	while (hasMore) {
 		pageCount++;
@@ -84,14 +85,7 @@ async function paginateInstantlyApi(
 			queryParams.starting_after = startingAfter;
 		}
 
-		console.log(`Fetching page ${pageCount} with params:`, queryParams);
 		const response = await instantlyApiRequest.call(context, 'GET', endpoint, {}, queryParams);
-		console.log(`Page ${pageCount} response:`, {
-			hasItems: !!response.items,
-			itemsLength: response.items?.length || 0,
-			hasNextStartingAfter: !!response.next_starting_after,
-			nextStartingAfter: response.next_starting_after
-		});
 
 		// Handle response structure - items are in 'items' array for paginated responses
 		let itemsData: any[] = [];
@@ -107,18 +101,14 @@ async function paginateInstantlyApi(
 
 		if (itemsData.length > 0) {
 			allItems = allItems.concat(itemsData);
-			console.log(`Added ${itemsData.length} ${resourceName}. Total so far: ${allItems.length}`);
 		} else {
-			console.log(`No ${resourceName} found in this page, stopping pagination`);
 			hasMore = false;
 		}
 
 		// Check if there are more pages using next_starting_after
 		if (response.next_starting_after && itemsData.length > 0) {
 			startingAfter = response.next_starting_after;
-			console.log(`Next page cursor: ${startingAfter}`);
 		} else {
-			console.log('No more pages available');
 			hasMore = false;
 		}
 
@@ -129,7 +119,7 @@ async function paginateInstantlyApi(
 		}
 	}
 
-	console.log(`Pagination completed. Total ${resourceName} retrieved: ${allItems.length}`);
+
 	return allItems;
 }
 
@@ -275,8 +265,8 @@ export class InstantlyApi implements INodeType {
 		defaults: {
 			name: 'Instantly',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: [NodeConnectionType.Main],
+		outputs: [NodeConnectionType.Main],
 		credentials: [
 			{
 				name: 'instantlyApi',
