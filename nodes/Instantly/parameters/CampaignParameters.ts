@@ -92,7 +92,6 @@ export const campaignParameters: INodeProperties[] = [
 		displayName: 'Campaign Name',
 		name: 'name',
 		type: 'string',
-		required: false,
 		default: '',
 		displayOptions: {
 			show: {
@@ -119,7 +118,7 @@ export const campaignParameters: INodeProperties[] = [
 
 	// Additional Fields for Update Campaign
 	{
-		displayName: 'Additional Fields',
+		displayName: 'Update Fields',
 		name: 'updateAdditionalFields',
 		type: 'collection',
 		placeholder: 'Add Field',
@@ -186,14 +185,14 @@ export const campaignParameters: INodeProperties[] = [
 
 			// Email Accounts and Lists
 			{
-				displayName: 'Email Accounts',
+				displayName: 'Email Account Names or IDs',
 				name: 'emailList',
 				type: 'multiOptions',
 				typeOptions: {
 					loadOptionsMethod: 'getEmailAccounts',
 				},
 				default: [],
-				description: 'List of email accounts to use for sending emails',
+				description: 'List of email accounts to use for sending emails. Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 			},
 			{
 				displayName: 'Email Tag List',
@@ -590,14 +589,14 @@ export const campaignParameters: INodeProperties[] = [
 
 			// Email Timing Settings
 			{
-				displayName: 'Email Gap (minutes)',
+				displayName: 'Email Gap (Minutes)',
 				name: 'emailGap',
 				type: 'number',
 				default: 10,
 				description: 'The gap between emails in minutes',
 			},
 			{
-				displayName: 'Random Wait Max (minutes)',
+				displayName: 'Random Wait Max (Minutes)',
 				name: 'randomWaitMax',
 				type: 'number',
 				default: 10,
@@ -805,7 +804,7 @@ export const campaignParameters: INodeProperties[] = [
 										type: 'string',
 										default: '',
 										required: true,
-										description: 'Subject line for this email step. Supports both Instantly variables ({{firstName}}) and n8n expressions ({{ $json.fieldName }}) for maximum flexibility.',
+										description: 'Subject line for this email step. Supports both Instantly variables ({{firstName}}) and n8n expressions ({{ $JSON.fieldName }}) for maximum flexibility.',
 										placeholder: 'e.g., Hi {{firstName}}, your order {{ $json.orderNumber }} is ready!',
 										hint: 'Use {{firstName}} for Instantly personalization, {{ $json.field }} for n8n data',
 									},
@@ -818,7 +817,7 @@ export const campaignParameters: INodeProperties[] = [
 										typeOptions: {
 											rows: 6,
 										},
-										description: 'Email content for this step. Mix Instantly variables ({{firstName}}) with n8n expressions ({{ $json.data }}) seamlessly. Line breaks are preserved.',
+										description: 'Email content for this step. Mix Instantly variables ({{firstName}}) with n8n expressions ({{ $JSON.data }}) seamlessly. Line breaks are preserved.',
 										placeholder: 'Hi {{firstName}},\n\nYour order {{ $json.orderNumber }} for {{companyName}} is ready!\n\nBest regards,\n{{senderName}}',
 										hint: 'Instantly vars: {{firstName}}, {{lastName}} | n8n data: {{ $json.field }}',
 									},

@@ -1,15 +1,259 @@
 import {
+	IExecuteFunctions,
+	ILoadOptionsFunctions,
+	INodeExecutionData,
+	INodeListSearchResult,
+	INodeListSearchItems,
+	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
-	IExecuteFunctions,
-	INodeExecutionData,
-	IDataObject,
 	NodeConnectionType,
+	NodeOperationError,
 } from 'n8n-workflow';
 
 import { instantlyApiRequest } from '../generic.functions';
+import { OperationRouter } from './operations/OperationRouter';
+import { ResourceType, OperationType } from './types/common';
+import { leadParameters } from './parameters/LeadParameters';
+import { campaignParameters } from './parameters/CampaignParameters';
 
-export class Instantly implements INodeType {
+// Helper function to format dates for Instantly API (YYYY-MM-DD format)
+function formatDateForApi(dateInput: any): string {
+	if (!dateInput || dateInput === '') {
+		return '';
+	}
+
+	let dateString = String(dateInput);
+
+	// Handle n8n DateTime objects that come as "[DateTime: 2025-06-26T13:52:08.271Z]"
+	if (dateString.startsWith('[DateTime: ') && dateString.endsWith(']')) {
+		dateString = dateString.slice(11, -1); // Remove "[DateTime: " and "]"
+	}
+
+	// Handle ISO datetime strings (e.g., "2025-06-19T13:52:45.316Z")
+	if (dateString.includes('T')) {
+		dateString = dateString.split('T')[0];
+	}
+
+	// Handle date strings that might have time components separated by space
+	if (dateString.includes(' ')) {
+		dateString = dateString.split(' ')[0];
+	}
+
+	// Validate the resulting date format (should be YYYY-MM-DD)
+	const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+	if (!dateRegex.test(dateString)) {
+		// Try to parse as Date and format
+		try {
+			const parsedDate = new Date(dateInput);
+			if (!isNaN(parsedDate.getTime())) {
+				// Format as YYYY-MM-DD
+				const year = parsedDate.getFullYear();
+				const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+				const day = String(parsedDate.getDate()).padStart(2, '0');
+				return `${year}-${month}-${day}`;
+			}
+		} catch (error) {
+			console.warn('Failed to parse date:', dateInput, error);
+		}
+
+		// If all parsing fails, return empty string to avoid API errors
+		console.warn('Invalid date format for Instantly API:', dateInput);
+		return '';
+	}
+
+	return dateString;
+}
+
+// Helper function for pagination
+async function paginateInstantlyApi(
+	context: IExecuteFunctions,
+	endpoint: string,
+	resourceName: string,
+): Promise<any[]> {
+	let allItems: any[] = [];
+	let startingAfter: string | undefined;
+	let hasMore = true;
+	let pageCount = 0;
+
+
+
+	while (hasMore) {
+		pageCount++;
+		const queryParams: any = { limit: 100 }; // Use max limit for efficiency
+		if (startingAfter) {
+			queryParams.starting_after = startingAfter;
+		}
+
+		const response = await instantlyApiRequest.call(context, 'GET', endpoint, {}, queryParams);
+
+		// Handle response structure - items are in 'items' array for paginated responses
+		let itemsData: any[] = [];
+		if (response.items && Array.isArray(response.items)) {
+			itemsData = response.items;
+		} else if (response.data && Array.isArray(response.data)) {
+			itemsData = response.data;
+		} else if (Array.isArray(response)) {
+			itemsData = response;
+		} else {
+			console.warn('Unexpected response structure:', response);
+		}
+
+		if (itemsData.length > 0) {
+			allItems = allItems.concat(itemsData);
+		} else {
+			hasMore = false;
+		}
+
+		// Check if there are more pages using next_starting_after
+		if (response.next_starting_after && itemsData.length > 0) {
+			startingAfter = response.next_starting_after;
+		} else {
+			hasMore = false;
+		}
+
+		// Safety check to prevent infinite loops
+		if (pageCount > 1000) {
+			console.warn('Pagination stopped after 1000 pages to prevent infinite loop');
+			break;
+		}
+	}
+
+
+	return allItems;
+}
+
+// Helper function to get campaigns for dropdown
+async function getCampaigns(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	try {
+		// Get campaigns using our existing pagination function
+		const responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/campaigns', {}, { limit: 100 });
+
+		// Handle response structure - campaigns are in 'items' array for paginated responses
+		let campaigns = [];
+		if (responseData.items && Array.isArray(responseData.items)) {
+			campaigns = responseData.items;
+		} else if (Array.isArray(responseData)) {
+			campaigns = responseData;
+		}
+
+		// Filter campaigns if filter is provided
+		const filteredCampaigns = campaigns.filter((campaign: any) => {
+			if (!filter) return true;
+			const campaignName = `${campaign.name || ''}`.toLowerCase();
+			return campaignName.includes(filter.toLowerCase());
+		});
+
+		// Map campaigns to dropdown options
+		const campaignOptions: INodePropertyOptions[] = filteredCampaigns.map((campaign: any) => ({
+			name: campaign.name || `Campaign ${campaign.id}`,
+			value: campaign.id,
+		}));
+
+		return {
+			results: campaignOptions,
+		};
+	} catch (error) {
+		console.error('Error fetching campaigns for dropdown:', error);
+		return {
+			results: [],
+		};
+	}
+}
+
+// Helper function to get email accounts for dropdown
+async function getEmailAccounts(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	try {
+		// Get email accounts using the accounts API endpoint
+		const responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/accounts', {}, { limit: 100 });
+
+		// Handle response structure - accounts are in 'items' array for paginated responses
+		let accounts = [];
+		if (responseData.items && Array.isArray(responseData.items)) {
+			accounts = responseData.items;
+		} else if (Array.isArray(responseData)) {
+			accounts = responseData;
+		}
+
+		// Filter accounts if filter is provided
+		const filteredAccounts = accounts.filter((account: any) => {
+			if (!filter) return true;
+			const accountEmail = `${account.email || ''}`.toLowerCase();
+			const accountName = `${account.first_name || ''} ${account.last_name || ''}`.toLowerCase().trim();
+			return accountEmail.includes(filter.toLowerCase()) || accountName.includes(filter.toLowerCase());
+		});
+
+		// Map accounts to dropdown options
+		const accountOptions: INodePropertyOptions[] = filteredAccounts.map((account: any) => {
+			const displayName = account.first_name && account.last_name
+				? `${account.email} (${account.first_name} ${account.last_name})`
+				: account.email;
+			return {
+				name: displayName || `Account ${account.id}`,
+				value: account.email,
+			};
+		});
+
+		return {
+			results: accountOptions,
+		};
+	} catch (error) {
+		console.error('Error fetching email accounts for dropdown:', error);
+		return {
+			results: [],
+		};
+	}
+}
+
+// Helper function to get leads for dropdown
+async function getLeads(
+	this: ILoadOptionsFunctions,
+	filter?: string,
+): Promise<INodeListSearchResult> {
+	try {
+		// Get leads using the leads list API endpoint
+		const body: any = {
+			limit: 100,
+		};
+
+		// Add search filter if provided
+		if (filter) {
+			body.search = filter;
+		}
+
+		const response = await instantlyApiRequest.call(this, 'POST', '/api/v2/leads/list', body);
+
+		const leadOptions: INodeListSearchItems[] = [];
+
+		if (response.items && Array.isArray(response.items)) {
+			for (const lead of response.items) {
+				const name = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || lead.email || 'Unknown Lead';
+				const value = lead.id;
+				leadOptions.push({
+					name: `${name} (${lead.email || 'No email'})`,
+					value,
+				});
+			}
+		}
+
+		return {
+			results: leadOptions,
+		};
+	} catch (error) {
+		console.error('Error fetching leads for dropdown:', error);
+		return {
+			results: [],
+		};
+	}
+}
+
+export class InstantlyApi implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Instantly',
 		name: 'instantly',
@@ -21,8 +265,8 @@ export class Instantly implements INodeType {
 		defaults: {
 			name: 'Instantly',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: [NodeConnectionType.Main],
+		outputs: [NodeConnectionType.Main],
 		credentials: [
 			{
 				name: 'instantlyApi',
@@ -41,6 +285,10 @@ export class Instantly implements INodeType {
 						value: 'account',
 					},
 					{
+						name: 'Analytics',
+						value: 'analytics',
+					},
+					{
 						name: 'Campaign',
 						value: 'campaign',
 					},
@@ -52,51 +300,11 @@ export class Instantly implements INodeType {
 				default: 'campaign',
 			},
 
-			// CAMPAIGN OPERATIONS
-			{
-				displayName: 'Operation',
-				name: 'operation',
-				type: 'options',
-				noDataExpression: true,
-				displayOptions: {
-					show: {
-						resource: ['campaign'],
-					},
-				},
-				options: [
-					{
-						name: 'Create',
-						value: 'create',
-						description: 'Create a campaign',
-						action: 'Create a campaign',
-					},
-					{
-						name: 'Delete',
-						value: 'delete',
-						description: 'Delete a campaign',
-						action: 'Delete a campaign',
-					},
-					{
-						name: 'Get',
-						value: 'get',
-						description: 'Get a campaign',
-						action: 'Get a campaign',
-					},
-					{
-						name: 'Get Many',
-						value: 'getMany',
-						description: 'Get many campaigns',
-						action: 'Get many campaigns',
-					},
-					{
-						name: 'Update',
-						value: 'update',
-						description: 'Update a campaign',
-						action: 'Update a campaign',
-					},
-				],
-				default: 'create',
-			},
+			// CAMPAIGN OPERATIONS - Using modular parameters
+			...campaignParameters,
+
+			// LEAD OPERATIONS - Using modular parameters
+			...leadParameters,
 
 			// ACCOUNT OPERATIONS
 			{
@@ -111,40 +319,90 @@ export class Instantly implements INodeType {
 				},
 				options: [
 					{
-						name: 'Create',
-						value: 'create',
-						description: 'Create an account',
-						action: 'Create an account',
-					},
-					{
-						name: 'Delete',
-						value: 'delete',
-						description: 'Delete an account',
-						action: 'Delete an account',
-					},
-					{
-						name: 'Get',
-						value: 'get',
-						description: 'Get an account by email',
-						action: 'Get an account by email',
-					},
-					{
-						name: 'Get Many',
+						name: 'Get Many Accounts',
 						value: 'getMany',
-						description: 'Get many accounts',
-						action: 'Get many accounts',
+						description: 'Get many email accounts',
+						action: 'Get many email accounts',
 					},
 					{
-						name: 'Update',
-						value: 'update',
-						description: 'Update an account',
-						action: 'Update an account',
+						name: 'Get Single Account',
+						value: 'get',
+						description: 'Get a single email account by email address',
+						action: 'Get a single email account',
 					},
 				],
 				default: 'getMany',
 			},
 
-			// LEAD OPERATIONS
+			// Email Account Selector
+			{
+				displayName: 'Email Account',
+				name: 'emailAccount',
+				type: 'resourceLocator',
+				default: { mode: 'list', value: '' },
+				required: true,
+				modes: [
+					{
+						displayName: 'From List',
+						name: 'list',
+						type: 'list',
+						placeholder: 'Select an email account...',
+						typeOptions: {
+							searchListMethod: 'getEmailAccounts',
+							searchable: true,
+						},
+					},
+					{
+						displayName: 'By Email',
+						name: 'email',
+						type: 'string',
+						placeholder: 'e.g. user@example.com',
+					},
+				],
+				displayOptions: {
+					show: {
+						resource: ['account'],
+						operation: ['get'],
+					},
+				},
+				description: 'The email account to retrieve. Choose from the list, or specify an email address.',
+			},
+
+			// Return All for accounts
+			{
+				displayName: 'Return All',
+				name: 'returnAll',
+				type: 'boolean',
+				default: false,
+				displayOptions: {
+					show: {
+						resource: ['account'],
+						operation: ['getMany'],
+					},
+				},
+				description: 'Whether to return all results or only up to a given limit',
+			},
+
+			// Limit for accounts
+			{
+				displayName: 'Limit',
+				name: 'limit',
+				type: 'number',
+				typeOptions: {
+					minValue: 1,
+				},
+				default: 50,
+				displayOptions: {
+					show: {
+						resource: ['account'],
+						operation: ['getMany'],
+						returnAll: [false],
+					},
+				},
+				description: 'Max number of results to return',
+			},
+
+			// ANALYTICS OPERATIONS
 			{
 				displayName: 'Operation',
 				name: 'operation',
@@ -152,383 +410,99 @@ export class Instantly implements INodeType {
 				noDataExpression: true,
 				displayOptions: {
 					show: {
-						resource: ['lead'],
+						resource: ['analytics'],
 					},
 				},
 				options: [
 					{
-						name: 'Create',
-						value: 'create',
-						description: 'Create a lead',
-						action: 'Create a lead',
-					},
-					{
-						name: 'Delete',
-						value: 'delete',
-						description: 'Delete a lead',
-						action: 'Delete a lead',
-					},
-					{
-						name: 'Get',
-						value: 'get',
-						description: 'Get a lead',
-						action: 'Get a lead',
-					},
-					{
-						name: 'Get Many',
-						value: 'getMany',
-						description: 'Get many leads',
-						action: 'Get many leads',
-					},
-					{
-						name: 'Update',
-						value: 'update',
-						description: 'Update a lead',
-						action: 'Update a lead',
+						name: 'Get Campaign Analytics',
+						value: 'getCampaignAnalytics',
+						description: 'Get analytics for a campaign',
+						action: 'Get campaign analytics',
 					},
 				],
-				default: 'create',
+				default: 'getCampaignAnalytics',
 			},
 
-			// CAMPAIGN FIELDS
-
-			// Campaign ID for operations that need it
-			{
-				displayName: 'Campaign ID',
-				name: 'campaignId',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: {
-					show: {
-						resource: ['campaign'],
-						operation: ['get', 'update', 'delete'],
-					},
-				},
-				description: 'ID of the campaign',
-			},
-
-			// Fields for create campaign
-			{
-				displayName: 'Campaign Name',
-				name: 'name',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: {
-					show: {
-						resource: ['campaign'],
-						operation: ['create'],
-					},
-				},
-				description: 'Name of the campaign to create',
-			},
-			{
-				displayName: 'Email Account ID',
-				name: 'emailAccountId',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: {
-					show: {
-						resource: ['campaign'],
-						operation: ['create'],
-					},
-				},
-				description: 'ID of the email account to use',
-			},
-
-			// Fields for update campaign
-			{
-				displayName: 'Update Fields',
-				name: 'updateFields',
-				type: 'collection',
-				placeholder: 'Add Field',
-				default: {},
-				displayOptions: {
-					show: {
-						resource: ['campaign'],
-						operation: ['update'],
-					},
-				},
-				options: [
-					{
-						displayName: 'Campaign Name',
-						name: 'name',
-						type: 'string',
-						default: '',
-						description: 'New name for the campaign',
-					},
-					{
-						displayName: 'Email Account ID',
-						name: 'emailAccountId',
-						type: 'string',
-						default: '',
-						description: 'New email account ID for the campaign',
-					},
-				],
-			},
-
-			// ACCOUNT FIELDS
-
-			// Account email for operations that need it
-			{
-				displayName: 'Email',
-				name: 'email',
-				type: 'string',
-				placeholder: 'name@email.com',
-				required: true,
-				default: '',
-				displayOptions: {
-					show: {
-						resource: ['account'],
-						operation: ['get', 'update', 'delete'],
-					},
-				},
-				description: 'The email of the account',
-			},
-
-			// Fields for create account
-			{
-				displayName: 'Email',
-				name: 'email',
-				type: 'string',
-				placeholder: 'name@email.com',
-				required: true,
-				default: '',
-				displayOptions: {
-					show: {
-						resource: ['account'],
-						operation: ['create'],
-					},
-				},
-				description: 'The email of the account to create',
-			},
-			{
-				displayName: 'Password',
-				name: 'password',
-				type: 'string',
-				typeOptions: {
-					password: true,
-				},
-				required: true,
-				default: '',
-				displayOptions: {
-					show: {
-						resource: ['account'],
-						operation: ['create'],
-					},
-				},
-				description: 'The password for the account',
-			},
-			{
-				displayName: 'Full Name',
-				name: 'fullName',
-				type: 'string',
-				required: true,
-				default: '',
-				displayOptions: {
-					show: {
-						resource: ['account'],
-						operation: ['create'],
-					},
-				},
-				description: 'The full name for the account',
-			},
-
-			// Fields for update account
-			{
-				displayName: 'Update Fields',
-				name: 'updateFields',
-				type: 'collection',
-				placeholder: 'Add Field',
-				default: {},
-				displayOptions: {
-					show: {
-						resource: ['account'],
-						operation: ['update'],
-					},
-				},
-				options: [
-					{
-						displayName: 'Full Name',
-						name: 'fullName',
-						type: 'string',
-						default: '',
-						description: 'The full name for the account',
-					},
-					{
-						displayName: 'Password',
-						name: 'password',
-						type: 'string',
-						typeOptions: {
-							password: true,
-						},
-						default: '',
-						description: 'The password for the account',
-					},
-				],
-			},
-
-			// LEAD FIELDS
-
-			// Lead ID for operations that need it
-			{
-				displayName: 'Lead ID',
-				name: 'leadId',
-				type: 'string',
-				default: '',
-				required: true,
-				displayOptions: {
-					show: {
-						resource: ['lead'],
-						operation: ['get', 'update', 'delete'],
-					},
-				},
-				description: 'ID of the lead',
-			},
-
-			// Fields for create lead
-			{
-				displayName: 'Email',
-				name: 'email',
-				type: 'string',
-				placeholder: 'name@email.com',
-				required: true,
-				default: '',
-				displayOptions: {
-					show: {
-						resource: ['lead'],
-						operation: ['create'],
-					},
-				},
-				description: 'The email of the lead to create',
-			},
-			{
-				displayName: 'Additional Fields',
-				name: 'additionalFields',
-				type: 'collection',
-				placeholder: 'Add Field',
-				default: {},
-				displayOptions: {
-					show: {
-						resource: ['lead'],
-						operation: ['create'],
-					},
-				},
-				options: [
-					{
-						displayName: 'Company',
-						name: 'company',
-						type: 'string',
-						default: '',
-						description: 'Company of the lead',
-					},
-					{
-						displayName: 'First Name',
-						name: 'firstName',
-						type: 'string',
-						default: '',
-						description: 'First name of the lead',
-					},
-					{
-						displayName: 'Last Name',
-						name: 'lastName',
-						type: 'string',
-						default: '',
-						description: 'Last name of the lead',
-					},
-					{
-						displayName: 'LinkedIn URL',
-						name: 'linkedinUrl',
-						type: 'string',
-						default: '',
-						description: 'LinkedIn URL of the lead',
-					},
-				],
-			},
-
-			// Fields for update lead
-			{
-				displayName: 'Update Fields',
-				name: 'updateFields',
-				type: 'collection',
-				placeholder: 'Add Field',
-				default: {},
-				displayOptions: {
-					show: {
-						resource: ['lead'],
-						operation: ['update'],
-					},
-				},
-				options: [
-					{
-						displayName: 'Company',
-						name: 'company',
-						type: 'string',
-						default: '',
-						description: 'Company of the lead',
-					},
-					{
-						displayName: 'Email',
-						name: 'email',
-						type: 'string',
-						placeholder: 'name@email.com',
-						default: '',
-						description: 'The email of the lead',
-					},
-					{
-						displayName: 'First Name',
-						name: 'firstName',
-						type: 'string',
-						default: '',
-						description: 'First name of the lead',
-					},
-					{
-						displayName: 'Last Name',
-						name: 'lastName',
-						type: 'string',
-						default: '',
-						description: 'Last name of the lead',
-					},
-					{
-						displayName: 'LinkedIn URL',
-						name: 'linkedinUrl',
-						type: 'string',
-						default: '',
-						description: 'LinkedIn URL of the lead',
-					},
-				],
-			},
-
-			// Common options for get many operations
+			// Return All toggle for analytics
 			{
 				displayName: 'Return All',
 				name: 'returnAll',
 				type: 'boolean',
+				default: false,
 				displayOptions: {
 					show: {
-						operation: ['getMany'],
+						resource: ['analytics'],
+						operation: ['getCampaignAnalytics'],
 					},
 				},
-				default: false,
 				description: 'Whether to return all results or only up to a given limit',
 			},
+
+			// Campaign Selector for analytics
 			{
-				displayName: 'Limit',
-				name: 'limit',
-				type: 'number',
+				displayName: 'Campaign',
+				name: 'campaignId',
+				type: 'resourceLocator',
+				default: { mode: 'list', value: '' },
+				required: true,
+				modes: [
+					{
+						displayName: 'From List',
+						name: 'list',
+						type: 'list',
+						placeholder: 'Select a campaign...',
+						typeOptions: {
+							searchListMethod: 'getCampaigns',
+							searchable: true,
+						},
+					},
+					{
+						displayName: 'By ID',
+						name: 'id',
+						type: 'string',
+						placeholder: 'e.g. 01234567-89ab-cdef-0123-456789abcdef',
+					},
+				],
 				displayOptions: {
 					show: {
-						operation: ['getMany'],
+						resource: ['analytics'],
+						operation: ['getCampaignAnalytics'],
 						returnAll: [false],
 					},
 				},
-				typeOptions: {
-					minValue: 1,
+				description: 'The campaign to get analytics for. Choose from the list, or specify an ID.',
+			},
+
+			// Date Range Fields for Analytics
+			{
+				displayName: 'Start Date',
+				name: 'startDate',
+				type: 'dateTime',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['analytics'],
+						operation: ['getCampaignAnalytics'],
+					},
 				},
-				default: 50,
-				description: 'Max number of results to return',
+				description: 'Start date for analytics data (YYYY-MM-DD format). Leave empty for all-time analytics.',
+				placeholder: 'e.g. 2024-01-01',
+			},
+
+			{
+				displayName: 'End Date',
+				name: 'endDate',
+				type: 'dateTime',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['analytics'],
+						operation: ['getCampaignAnalytics'],
+					},
+				},
+				description: 'End date for analytics data (YYYY-MM-DD format). Leave empty for all-time analytics.',
+				placeholder: 'e.g. 2024-12-31',
 			},
 		],
 	};
@@ -536,188 +510,112 @@ export class Instantly implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
-		const length = items.length;
-		let responseData;
 
-		const resource = this.getNodeParameter('resource', 0) as string;
-		const operation = this.getNodeParameter('operation', 0) as string;
+		// Helper function to extract campaign ID from resourceLocator
+		const getCampaignId = (i: number): string => {
+			const campaignLocator = this.getNodeParameter('campaignId', i) as any;
+			if (typeof campaignLocator === 'string') {
+				// Backward compatibility - if it's still a string
+				return campaignLocator;
+			}
+			// Extract value from resourceLocator
+			return campaignLocator.value || campaignLocator;
+		};
 
-		for (let i = 0; i < length; i++) {
+		// Helper function to extract email from resourceLocator
+		const getEmailAccount = (i: number): string => {
+			const emailLocator = this.getNodeParameter('emailAccount', i) as any;
+			if (typeof emailLocator === 'string') {
+				// Backward compatibility - if it's still a string
+				return emailLocator;
+			}
+			// Extract value from resourceLocator
+			return emailLocator.value || emailLocator;
+		};
+
+		for (let i = 0; i < items.length; i++) {
 			try {
-				// Routes based on resource and operation
+				const resource = this.getNodeParameter('resource', i) as string;
+				const operation = this.getNodeParameter('operation', i) as string;
+
+				let responseData;
+
 				if (resource === 'campaign') {
-					if (operation === 'create') {
-						// Create a campaign
-						const name = this.getNodeParameter('name', i) as string;
-						const emailAccountId = this.getNodeParameter('emailAccountId', i) as string;
-
-						const body: IDataObject = {
-							name,
-							emailAccountId,
-						};
-
-						responseData = await instantlyApiRequest.call(this, 'POST', '/api/v2/campaigns', body);
-					} else if (operation === 'get') {
-						// Get a single campaign
-						const campaignId = this.getNodeParameter('campaignId', i) as string;
-						responseData = await instantlyApiRequest.call(this, 'GET', `/api/v2/campaigns/${campaignId}`);
-					} else if (operation === 'getMany') {
-						// Get many campaigns
-						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-
-						if (returnAll) {
-							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/campaigns');
-						} else {
-							const limit = this.getNodeParameter('limit', i) as number;
-							const qs: IDataObject = {
-								limit,
-							};
-							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/campaigns', {}, qs);
-						}
-					} else if (operation === 'update') {
-						// Update a campaign
-						const campaignId = this.getNodeParameter('campaignId', i) as string;
-						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
-
-						const body: IDataObject = {};
-						if (updateFields.name) body.name = updateFields.name;
-						if (updateFields.emailAccountId) body.emailAccountId = updateFields.emailAccountId;
-
-						responseData = await instantlyApiRequest.call(
-							this,
-							'PATCH',
-							`/api/v2/campaigns/${campaignId}`,
-							body,
-						);
-					} else if (operation === 'delete') {
-						// Delete a campaign
-						const campaignId = this.getNodeParameter('campaignId', i) as string;
-						responseData = await instantlyApiRequest.call(
-							this,
-							'DELETE',
-							`/api/v2/campaigns/${campaignId}`,
-						);
-					}
-				} else if (resource === 'account') {
-					if (operation === 'create') {
-						// Create an account
-						const email = this.getNodeParameter('email', i) as string;
-						const password = this.getNodeParameter('password', i) as string;
-						const fullName = this.getNodeParameter('fullName', i) as string;
-
-						const body: IDataObject = {
-							email,
-							password,
-							fullName,
-						};
-
-						responseData = await instantlyApiRequest.call(this, 'POST', '/api/v2/accounts', body);
-					} else if (operation === 'get') {
-						// Get a single account
-						const email = this.getNodeParameter('email', i) as string;
-						responseData = await instantlyApiRequest.call(
-							this,
-							'GET',
-							`/api/v2/accounts/${encodeURIComponent(email)}`,
-						);
-					} else if (operation === 'getMany') {
-						// Get many accounts
-						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-
-						if (returnAll) {
-							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/accounts');
-						} else {
-							const limit = this.getNodeParameter('limit', i) as number;
-							const qs: IDataObject = {
-								limit,
-							};
-							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/accounts', {}, qs);
-						}
-					} else if (operation === 'update') {
-						// Update an account
-						const email = this.getNodeParameter('email', i) as string;
-						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
-
-						const body: IDataObject = {};
-						if (updateFields.fullName) body.fullName = updateFields.fullName;
-						if (updateFields.password) body.password = updateFields.password;
-
-						responseData = await instantlyApiRequest.call(
-							this,
-							'PATCH',
-							`/api/v2/accounts/${encodeURIComponent(email)}`,
-							body,
-						);
-					} else if (operation === 'delete') {
-						// Delete an account
-						const email = this.getNodeParameter('email', i) as string;
-						responseData = await instantlyApiRequest.call(
-							this,
-							'DELETE',
-							`/api/v2/accounts/${encodeURIComponent(email)}`,
-						);
-					}
+					// Use the modular OperationRouter for Campaign operations
+					responseData = await OperationRouter.execute(this, i, resource as ResourceType, operation as OperationType);
 				} else if (resource === 'lead') {
-					if (operation === 'create') {
-						// Create a lead
-						const email = this.getNodeParameter('email', i) as string;
-						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
+					// Use the modular OperationRouter for Lead operations
+					responseData = await OperationRouter.execute(this, i, resource as ResourceType, operation as OperationType);
+				} else if (resource === 'account') {
+					if (operation === 'getMany') {
+						const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+						const limit = this.getNodeParameter('limit', i, 50) as number;
 
-						const body: IDataObject = {
-							email,
-							...additionalFields,
-						};
-
-						responseData = await instantlyApiRequest.call(this, 'POST', '/api/v2/leads', body);
-					} else if (operation === 'get') {
-						// Get a single lead
-						const leadId = this.getNodeParameter('leadId', i) as string;
-						responseData = await instantlyApiRequest.call(this, 'GET', `/api/v2/leads/${leadId}`);
-					} else if (operation === 'getMany') {
-						// Get many leads
-						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
+						// Validate limit doesn't exceed 100
+						if (limit > 100) {
+							throw new NodeOperationError(this.getNode(), 'Limit cannot exceed 100. Instantly API has a maximum limit of 100.', { itemIndex: i });
+						}
 
 						if (returnAll) {
-							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/leads');
+							// Get all accounts with pagination
+							const allAccounts = await paginateInstantlyApi(this, '/api/v2/accounts', 'accounts');
+							responseData = { items: allAccounts };
 						} else {
-							const limit = this.getNodeParameter('limit', i) as number;
-							const qs: IDataObject = {
-								limit,
-							};
-							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/leads', {}, qs);
+							// Get single page with specified limit
+							const queryParams = { limit };
+							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/accounts', {}, queryParams);
 						}
-					} else if (operation === 'update') {
-						// Update a lead
-						const leadId = this.getNodeParameter('leadId', i) as string;
-						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
+					} else if (operation === 'get') {
+						const emailAccount = getEmailAccount(i);
+						responseData = await instantlyApiRequest.call(this, 'GET', `/api/v2/accounts/${emailAccount}`);
+					}
+				} else if (resource === 'analytics') {
+					if (operation === 'getCampaignAnalytics') {
+						const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
 
-						responseData = await instantlyApiRequest.call(
-							this,
-							'PATCH',
-							`/api/v2/leads/${leadId}`,
-							updateFields,
-						);
-					} else if (operation === 'delete') {
-						// Delete a lead
-						const leadId = this.getNodeParameter('leadId', i) as string;
-						responseData = await instantlyApiRequest.call(
-							this,
-							'DELETE',
-							`/api/v2/leads/${leadId}`,
-						);
+						// Get date parameters and format them for the API
+						const startDateInput = this.getNodeParameter('startDate', i, '');
+						const endDateInput = this.getNodeParameter('endDate', i, '');
+
+						// Build query parameters object
+						const queryParams: any = {};
+
+						// Add date parameters if provided, using the robust date formatter
+						const formattedStartDate = formatDateForApi(startDateInput);
+						const formattedEndDate = formatDateForApi(endDateInput);
+
+						if (formattedStartDate) {
+							queryParams.start_date = formattedStartDate;
+						}
+						if (formattedEndDate) {
+							queryParams.end_date = formattedEndDate;
+						}
+
+						if (returnAll) {
+							// Get analytics for all campaigns with date filtering
+							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/campaigns/analytics', {}, queryParams);
+						} else {
+							// Get analytics for specific campaign with date filtering
+							const campaignId = getCampaignId(i);
+							queryParams.id = campaignId;
+							responseData = await instantlyApiRequest.call(this, 'GET', '/api/v2/campaigns/analytics', {}, queryParams);
+						}
 					}
 				}
 
 				const executionData = this.helpers.constructExecutionMetaData(
-					this.helpers.returnJsonArray(responseData),
+					this.helpers.returnJsonArray(responseData as any),
 					{ itemData: { item: i } },
 				);
 
 				returnData.push(...executionData);
 			} catch (error) {
 				if (this.continueOnFail()) {
-					const errorMessage = error instanceof Error ? error.message : String(error);
-					returnData.push({ json: { error: errorMessage } });
+					const executionData = this.helpers.constructExecutionMetaData(
+						[{ json: { error: (error as Error).message } }],
+						{ itemData: { item: i } },
+					);
+					returnData.push(...executionData);
 					continue;
 				}
 				throw error;
@@ -726,4 +624,12 @@ export class Instantly implements INodeType {
 
 		return [returnData];
 	}
+
+	methods = {
+		listSearch: {
+			getCampaigns,
+			getEmailAccounts,
+			getLeads,
+		},
+	};
 }
