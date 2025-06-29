@@ -40,7 +40,7 @@ export const analyticsParameters: INodeProperties[] = [
 				operation: ['getCampaignAnalytics'],
 			},
 		},
-		description: 'Whether to return analytics for all campaigns or just the selected campaign',
+		description: 'Whether to return all results or only up to a given limit',
 	},
 
 	// Campaign Selector for analytics
