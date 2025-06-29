@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["ES2020"],
+    "lib": ["ES2020", "DOM"],
     "module": "commonjs",
     "moduleResolution": "node",
     "target": "ES2020",
@@ -21,7 +21,8 @@
     "noUnusedParameters": false
   },
   "include": [
-    "nodes/**/*.ts",
+    "nodes/InstantlyApi/**/*.ts",
+    "nodes/generic.functions.ts",
     "credentials/**/*.ts",
     "index.ts"
   ],
