@@ -258,6 +258,47 @@ export const leadParameters: INodeProperties[] = [
 		},
 		options: [
 			{
+				displayName: 'Campaign',
+				name: 'campaign',
+				type: 'resourceLocator',
+				default: { mode: 'list', value: '' },
+				description: 'Campaign to associate with the lead',
+				modes: [
+					{
+						displayName: 'From List',
+						name: 'list',
+						type: 'list',
+						placeholder: 'Select a campaign...',
+						typeOptions: {
+							searchListMethod: 'getCampaigns',
+							searchable: true,
+						},
+					},
+					{
+						displayName: 'By ID',
+						name: 'id',
+						type: 'string',
+						placeholder: 'e.g. 01234567-89ab-cdef-0123-456789abcdef',
+						validation: [
+							{
+								type: 'regex',
+								properties: {
+									regex: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+									errorMessage: 'Not a valid campaign ID',
+								},
+							},
+						],
+					},
+				],
+			},
+			{
+				displayName: 'Company Name',
+				name: 'company_name',
+				type: 'string',
+				default: '',
+				description: 'Company name of the lead',
+			},
+			{
 				displayName: 'Email',
 				name: 'email',
 				type: 'string',
@@ -271,41 +312,6 @@ export const leadParameters: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'First name of the lead',
-			},
-			{
-				displayName: 'Last Name',
-				name: 'last_name',
-				type: 'string',
-				default: '',
-				description: 'Last name of the lead',
-			},
-			{
-				displayName: 'Company Name',
-				name: 'company_name',
-				type: 'string',
-				default: '',
-				description: 'Company name of the lead',
-			},
-			{
-				displayName: 'Phone',
-				name: 'phone',
-				type: 'string',
-				default: '',
-				description: 'Phone number of the lead',
-			},
-			{
-				displayName: 'Website',
-				name: 'website',
-				type: 'string',
-				default: '',
-				description: 'Website of the lead',
-			},
-			{
-				displayName: 'Personalization',
-				name: 'personalization',
-				type: 'string',
-				default: '',
-				description: 'Personalization message for the lead',
 			},
 			{
 				displayName: 'Interest Status',
@@ -349,6 +355,27 @@ export const leadParameters: INodeProperties[] = [
 				description: 'Lead interest status',
 			},
 			{
+				displayName: 'Last Name',
+				name: 'last_name',
+				type: 'string',
+				default: '',
+				description: 'Last name of the lead',
+			},
+			{
+				displayName: 'Personalization',
+				name: 'personalization',
+				type: 'string',
+				default: '',
+				description: 'Personalization message for the lead',
+			},
+			{
+				displayName: 'Phone',
+				name: 'phone',
+				type: 'string',
+				default: '',
+				description: 'Phone number of the lead',
+			},
+			{
 				displayName: 'Potential Value',
 				name: 'pl_value_lead',
 				type: 'string',
@@ -356,38 +383,11 @@ export const leadParameters: INodeProperties[] = [
 				description: 'Potential value of the lead',
 			},
 			{
-				displayName: 'Campaign',
-				name: 'campaign',
-				type: 'resourceLocator',
-				default: { mode: 'list', value: '' },
-				description: 'Campaign to associate with the lead',
-				modes: [
-					{
-						displayName: 'From List',
-						name: 'list',
-						type: 'list',
-						placeholder: 'Select a campaign...',
-						typeOptions: {
-							searchListMethod: 'getCampaigns',
-							searchable: true,
-						},
-					},
-					{
-						displayName: 'By ID',
-						name: 'id',
-						type: 'string',
-						placeholder: 'e.g. 01234567-89ab-cdef-0123-456789abcdef',
-						validation: [
-							{
-								type: 'regex',
-								properties: {
-									regex: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-									errorMessage: 'Not a valid campaign ID',
-								},
-							},
-						],
-					},
-				],
+				displayName: 'Website',
+				name: 'website',
+				type: 'string',
+				default: '',
+				description: 'Website of the lead',
 			},
 		],
 	},
@@ -489,7 +489,6 @@ export const leadParameters: INodeProperties[] = [
 		},
 		typeOptions: {
 			minValue: 1,
-			maxValue: 100,
 		},
 		default: 50,
 		description: 'Max number of results to return',
@@ -509,15 +508,42 @@ export const leadParameters: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Search',
-				name: 'search',
-				type: 'string',
-				default: '',
-				description: 'Search leads by first name, last name, or email',
+				displayName: 'Campaign',
+				name: 'campaign',
+				type: 'resourceLocator',
+				default: { mode: 'list', value: '' },
+				description: 'Filter by campaign',
+				modes: [
+					{
+						displayName: 'From List',
+						name: 'list',
+						type: 'list',
+						placeholder: 'Select a campaign...',
+						typeOptions: {
+							searchListMethod: 'getCampaigns',
+							searchable: true,
+						},
+					},
+					{
+						displayName: 'By ID',
+						name: 'id',
+						type: 'string',
+						placeholder: 'e.g. 01234567-89ab-cdef-0123-456789abcdef',
+						validation: [
+							{
+								type: 'regex',
+								properties: {
+									regex: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+									errorMessage: 'Not a valid campaign ID',
+								},
+							},
+						],
+					},
+				],
 			},
 			{
-				displayName: 'Filter',
-				name: 'filter',
+				displayName: 'ESP Code',
+				name: 'esp_code',
 				type: 'options',
 				default: '',
 				options: [
@@ -526,32 +552,77 @@ export const leadParameters: INodeProperties[] = [
 						value: '',
 					},
 					{
-						name: 'Contacted',
-						value: 'FILTER_VAL_CONTACTED',
+						name: 'Google',
+						value: 1,
 					},
 					{
-						name: 'Not Contacted',
-						value: 'FILTER_VAL_NOT_CONTACTED',
+						name: 'In Queue',
+						value: 0,
+					},
+					{
+						name: 'Libero.it',
+						value: 13,
+					},
+					{
+						name: 'Microsoft',
+						value: 2,
+					},
+					{
+						name: 'Not Found',
+						value: 1000,
+					},
+					{
+						name: 'Other',
+						value: 999,
+					},
+					{
+						name: 'Web.de',
+						value: 12,
+					},
+					{
+						name: 'Yahoo',
+						value: 9,
+					},
+					{
+						name: 'Yandex',
+						value: 10,
+					},
+					{
+						name: 'Zoho',
+						value: 3,
+					},
+				],
+				description: 'Filter by ESP (Email Service Provider) code',
+			},
+			{
+				displayName: 'Filter',
+				name: 'filter',
+				type: 'options',
+				default: '',
+				options: [
+					{
+						name: 'Active',
+						value: 'FILTER_VAL_ACTIVE',
+					},
+					{
+						name: 'All',
+						value: '',
+					},
+					{
+						name: 'Closed',
+						value: 'FILTER_LEAD_CLOSED',
 					},
 					{
 						name: 'Completed',
 						value: 'FILTER_VAL_COMPLETED',
 					},
 					{
-						name: 'Unsubscribed',
-						value: 'FILTER_VAL_UNSUBSCRIBED',
-					},
-					{
-						name: 'Active',
-						value: 'FILTER_VAL_ACTIVE',
+						name: 'Contacted',
+						value: 'FILTER_VAL_CONTACTED',
 					},
 					{
 						name: 'Interested',
 						value: 'FILTER_LEAD_INTERESTED',
-					},
-					{
-						name: 'Not Interested',
-						value: 'FILTER_LEAD_NOT_INTERESTED',
 					},
 					{
 						name: 'Meeting Booked',
@@ -562,8 +633,16 @@ export const leadParameters: INodeProperties[] = [
 						value: 'FILTER_LEAD_MEETING_COMPLETED',
 					},
 					{
-						name: 'Closed',
-						value: 'FILTER_LEAD_CLOSED',
+						name: 'Not Contacted',
+						value: 'FILTER_VAL_NOT_CONTACTED',
+					},
+					{
+						name: 'Not Interested',
+						value: 'FILTER_LEAD_NOT_INTERESTED',
+					},
+					{
+						name: 'Unsubscribed',
+						value: 'FILTER_VAL_UNSUBSCRIBED',
 					},
 				],
 				description: 'Filter criteria for leads',
@@ -620,20 +699,32 @@ export const leadParameters: INodeProperties[] = [
 						value: '',
 					},
 					{
+						name: 'Google',
+						value: 1,
+					},
+					{
 						name: 'In Queue',
 						value: 0,
 					},
 					{
-						name: 'Google',
-						value: 1,
+						name: 'Libero.it',
+						value: 13,
 					},
 					{
 						name: 'Microsoft',
 						value: 2,
 					},
 					{
-						name: 'Zoho',
-						value: 3,
+						name: 'Not Found',
+						value: 1000,
+					},
+					{
+						name: 'Other',
+						value: 999,
+					},
+					{
+						name: 'Web.de',
+						value: 12,
 					},
 					{
 						name: 'Yahoo',
@@ -644,20 +735,8 @@ export const leadParameters: INodeProperties[] = [
 						value: 10,
 					},
 					{
-						name: 'Web.de',
-						value: 12,
-					},
-					{
-						name: 'Libero.it',
-						value: 13,
-					},
-					{
-						name: 'Other',
-						value: 999,
-					},
-					{
-						name: 'Not Found',
-						value: 1000,
+						name: 'Zoho',
+						value: 3,
 					},
 				],
 				description: 'Filter by ESP (Email Service Provider) code',
@@ -708,6 +787,7 @@ export const leadParameters: INodeProperties[] = [
 		displayName: 'Email',
 		name: 'email',
 		type: 'string',
+		placeholder: 'name@email.com',
 		required: true,
 		default: '',
 		displayOptions: {
