@@ -2,6 +2,22 @@
 
 This is an n8n community node for integrating with the [Instantly](https://instantly.ai) API. It allows you to create, retrieve, and manage your Instantly resources directly from n8n workflows.
 
+## 🚀 Quick Start for Development
+
+### Local Development Environment
+
+This repository includes a complete Docker-based development environment for testing the package locally without publishing to npm:
+
+```bash
+# Start development environment
+./dev-environment.sh start
+
+# Access n8n at http://localhost:5678
+# The Instantly node will be available in the palette
+```
+
+See [DEVELOPMENT_SETUP.md](DEVELOPMENT_SETUP.md) for detailed setup instructions.
+
 ## Installation
 
 ### Community Nodes (Recommended)

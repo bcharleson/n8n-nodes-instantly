@@ -1,4 +1,0 @@
-{
-  "node": "dist/nodes/InstantlyApi/InstantlyApi.node.js",
-  "credentials": "dist/nodes/InstantlyApi/credentials/InstantlyApi.credentials.js"
-}

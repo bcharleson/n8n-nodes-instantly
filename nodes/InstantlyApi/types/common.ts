@@ -1,9 +1,8 @@
-import { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
+import { IExecuteFunctions } from 'n8n-workflow';
 
 /**
  * Common types and interfaces for Instantly API operations
  */
-
 export interface IInstantlyApiContext {
 	context: IExecuteFunctions;
 	itemIndex: number;
@@ -54,23 +53,21 @@ export interface IWarmupConfig {
 
 export interface ICampaignFields {
 	name: string;
-	// Add other campaign fields as needed
 }
 
-// Campaign Creation Interfaces
 export interface ICampaignScheduleTiming {
-	from: string; // HH:MM format
-	to: string;   // HH:MM format
+	from: string;
+	to: string;
 }
 
 export interface ICampaignScheduleDays {
-	0?: boolean; // Sunday
-	1?: boolean; // Monday
-	2?: boolean; // Tuesday
-	3?: boolean; // Wednesday
-	4?: boolean; // Thursday
-	5?: boolean; // Friday
-	6?: boolean; // Saturday
+	0?: boolean;
+	1?: boolean;
+	2?: boolean;
+	3?: boolean;
+	4?: boolean;
+	5?: boolean;
+	6?: boolean;
 }
 
 export interface ICampaignScheduleItem {
@@ -82,8 +79,8 @@ export interface ICampaignScheduleItem {
 
 export interface ICampaignSchedule {
 	schedules: ICampaignScheduleItem[];
-	start_date?: string; // ISO date-time
-	end_date?: string;   // ISO date-time
+	start_date?: string;
+	end_date?: string;
 }
 
 export interface ICampaignSequenceStepVariant {
@@ -92,26 +89,22 @@ export interface ICampaignSequenceStepVariant {
 }
 
 export interface ICampaignSequenceStep {
-	type: string; // Required by API - typically 'email' for email steps
-	delay: number; // Required by API - 0 for first step, >=1 for subsequent steps
-	variants: ICampaignSequenceStepVariant[]; // Required by API - array of email variants for A/B testing
+	type: string;
+	delay: number;
+	variants: ICampaignSequenceStepVariant[];
 }
 
 export interface ICampaignSequence {
-	steps: ICampaignSequenceStep[]; // The API expects sequences to contain a steps array
+	steps: ICampaignSequenceStep[];
 }
 
 export interface ICampaignAutoVariantSelect {
 	trigger?: 'click_rate' | 'open_rate' | 'reply_rate';
-	// Add more auto variant select properties as needed
 }
 
 export interface ICampaignCreateFields {
-	// Required fields
 	name: string;
 	campaign_schedule: ICampaignSchedule;
-
-	// Optional basic fields
 	pl_value?: number;
 	is_evergreen?: boolean;
 	email_gap?: number;
@@ -119,8 +112,6 @@ export interface ICampaignCreateFields {
 	text_only?: boolean;
 	daily_limit?: number;
 	daily_max_leads?: number;
-
-	// Optional tracking fields
 	link_tracking?: boolean;
 	open_tracking?: boolean;
 	stop_on_reply?: boolean;
@@ -131,21 +122,16 @@ export interface ICampaignCreateFields {
 	insert_unsubscribe_header?: boolean;
 	allow_risky_contacts?: boolean;
 	disable_bounce_protect?: boolean;
-
-	// Optional array fields
 	email_list?: string[];
 	email_tag_list?: string[];
 	cc_list?: string[];
 	bcc_list?: string[];
 	sequences?: ICampaignSequence[];
-
-	// Optional complex objects
 	auto_variant_select?: ICampaignAutoVariantSelect;
 }
 
 export interface ILeadFields {
 	email: string;
-	// Add other lead fields as needed
 }
 
 export interface IAnalyticsParams {

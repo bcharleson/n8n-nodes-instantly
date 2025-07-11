@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-instantly",
-  "version": "0.1.7523",
+  "version": "0.1.7525",
   "description": "n8n community node for Instantly API v2",
   "keywords": [
     "n8n-community-node-package",
@@ -27,8 +27,8 @@
     "build": "tsc && gulp build:icons",
     "dev": "tsc --watch",
     "format": "prettier nodes credentials --write",
-    "lint": "eslint nodes/Instantly nodes/generic.functions.ts credentials",
-    "lintfix": "eslint nodes/Instantly nodes/generic.functions.ts credentials --fix",
+    "lint": "eslint nodes/InstantlyApi nodes/generic.functions.ts credentials",
+    "lintfix": "eslint nodes/InstantlyApi nodes/generic.functions.ts credentials --fix",
     "test": "jest",
     "test:unit": "jest __tests__/unit",
     "test:integration": "jest __tests__/integration",
@@ -53,7 +53,7 @@
       "dist/credentials/InstantlyApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/Instantly/Instantly.node.js"
+      "dist/nodes/InstantlyApi/InstantlyApi.node.js"
     ]
   },
   "devDependencies": {
