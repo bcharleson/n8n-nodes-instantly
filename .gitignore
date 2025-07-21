@@ -1,20 +1,42 @@
-node_modules
-.DS_Store
-.tmp
-tmp
-dist
+# Dependencies
+node_modules/
 npm-debug.log*
-yarn.lock
-.vscode/
+yarn-debug.log*
+yarn-error.log*
 
-# Testing and development files
-*test*.md
-*testing*.md
-*development*.md
-test/
-tests/
-.cursor/
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# Package artifacts
+*.tgz
+*.tar.gz
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+.tmp/
+tmp/
+*.tmp
+*.temp
+
+# IDE and Editor files
+.vscode/
 .idea/
+.cursor/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
 
 # Environment and secrets
 .env
@@ -23,7 +45,75 @@ config.json
 secrets.json
 credentials.json
 
+# Development and testing files
+*test*.md
+*testing*.md
+*development*.md
+test/
+tests/
+__tests__/
+
+# Development scripts and configuration
+build-publish.sh
+dev-environment.sh
+simple-docker-setup.sh
+docker-compose.yml
+docker-compose.*.yml
+docker/
+
+# Development documentation
+DEVELOPMENT_*.md
+TESTING_*.md
+README_TEMPLATE.md
+
+# Configuration files for development
+.eslintrc.js
+.eslintrc.prepublish.js
+.prettierrc.js
+.editorconfig
+tsconfig.json
+gulpfile.js
+
 # Client and project specific files
 *client*.md
 *hedgestone*
 *project*.md
+
+# Backup and temporary files
+*.bak
+*.backup
+*.old
+*~
+.#*
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+.nyc_output/
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
