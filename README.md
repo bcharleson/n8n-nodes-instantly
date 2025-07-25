@@ -30,28 +30,57 @@ npm install n8n-nodes-instantly
 
 ## Features
 
-This node supports the following resources and operations:
+This package includes two nodes for comprehensive Instantly integration:
 
-### Campaign Operations
+### 🔄 Instantly Node (Action Node)
+Perform operations on your Instantly resources:
+
+#### Campaign Operations
 - **Create**: Create a new email campaign
 - **Get**: Retrieve a specific campaign by ID
 - **Get Many**: Get a list of all campaigns
 - **Update**: Update an existing campaign
 - **Delete**: Delete a campaign
 
-### Account Operations
+#### Account Operations
 - **Create**: Create a new email account
 - **Get**: Retrieve a specific account by email
 - **Get Many**: Get a list of all accounts
 - **Update**: Update an existing account
 - **Delete**: Delete an account
 
-### Lead Operations
+#### Lead Operations
 - **Create**: Create a new lead
 - **Get**: Retrieve a specific lead by ID
 - **Get Many**: Get a list of all leads
 - **Update**: Update an existing lead
 - **Delete**: Delete a lead
+
+### ⚡ Instantly Trigger Node (Webhook Trigger)
+Automatically trigger workflows based on Instantly events:
+
+#### Supported Webhook Events
+- **Email Events**: `email_sent`, `email_opened`, `email_bounced`, `link_clicked`
+- **Reply Events**: `reply_received`, `auto_reply_received`
+- **Lead Status Events**: `lead_interested`, `lead_not_interested`, `lead_neutral`
+- **Lead Actions**: `lead_closed`, `lead_out_of_office`, `lead_wrong_person`
+- **Meeting Events**: `lead_meeting_booked`, `lead_meeting_completed`
+- **Campaign Events**: `campaign_completed`, `account_error`
+- **Subscription Events**: `lead_unsubscribed`
+
+#### Trigger Features
+- **Event Filtering**: Choose specific events or monitor all events
+- **Campaign Filtering**: Optionally filter by specific campaign ID
+- **Lead Filtering**: Optionally filter by specific lead email
+- **Easy Setup**: Clear instructions for webhook configuration in Instantly
+
+#### Webhook Setup
+1. Go to your **Instantly Settings**
+2. Navigate to **Integrations** tab
+3. Click **Add Webhook**
+4. Enter the webhook URL provided by the trigger node
+5. Select your campaign and desired events
+6. Click **Add Webhook**
 
 ## Resources
 
