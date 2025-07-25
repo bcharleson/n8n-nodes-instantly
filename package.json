@@ -53,7 +53,8 @@
       "dist/credentials/InstantlyApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/Instantly/Instantly.node.js"
+      "dist/nodes/Instantly/Instantly.node.js",
+      "dist/nodes/InstantlyTrigger/InstantlyTrigger.node.js"
     ]
   },
   "devDependencies": {

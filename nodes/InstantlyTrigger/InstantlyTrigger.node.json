@@ -1,0 +1,26 @@
+{
+	"node": "n8n-nodes-base.InstantlyTrigger",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": [
+		"Marketing & Content",
+		"Sales & CRM"
+	],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://developer.instantly.ai/api/v2"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://help.instantly.ai/en/articles/6261906-how-to-use-webhooks"
+			}
+		]
+	},
+	"alias": ["Instantly Webhook", "Email Outreach Trigger"],
+	"subcategories": {
+		"Marketing & Content": ["Email Marketing"],
+		"Sales & CRM": ["Lead Management"]
+	}
+}
