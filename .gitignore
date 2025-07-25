@@ -27,3 +27,13 @@ credentials.json
 *client*.md
 *hedgestone*
 *project*.md
+
+# Testing environment (keep clean for production)
+testing/
+test-environment/
+local-n8n/
+webhook-test-data/
+*.test.log
+test-results/
+coverage/
+n8n-dev-setup/
