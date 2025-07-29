@@ -5,8 +5,9 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	IWebhookResponseData,
+	JsonObject,
 } from 'n8n-workflow';
-import { NodeConnectionTypes } from 'n8n-workflow';
+import { NodeConnectionTypes, NodeApiError } from 'n8n-workflow';
 
 export class InstantlyTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -46,18 +47,41 @@ export class InstantlyTrigger implements INodeType {
 					show: {},
 				},
 				description: `
-					<h3>Webhook Setup Instructions</h3>
-					<p>To use this trigger, you need to configure a webhook in your Instantly account:</p>
-					<ol>
-						<li>Go to your <strong>Instantly Settings</strong></li>
-						<li>Navigate to the <strong>Integrations</strong> tab</li>
-						<li>Click <strong>Add Webhook</strong></li>
-						<li>Enter this URL: <code>{{$webhookUrl}}</code></li>
-						<li>Select the campaign and events you want to monitor</li>
-						<li>Click <strong>Add Webhook</strong></li>
-					</ol>
-					<p><strong>Note:</strong> Webhooks are configured per campaign in Instantly.</p>
+					<h3>🚀 Automated Webhook Setup</h3>
+					<p>This trigger automatically creates and manages webhooks in your Instantly account using the API.</p>
+
+					<div style="background: #e8f5e8; border-left: 4px solid #4caf50; padding: 12px; margin: 10px 0;">
+						<strong>✅ Fully Automated:</strong><br>
+						• Webhook is automatically created when you activate this workflow<br>
+						• No manual configuration in Instantly dashboard required<br>
+						• Webhook is automatically deleted when workflow is deactivated<br>
+						• Uses your Instantly API credentials for secure management
+					</div>
+
+					<div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px; margin: 10px 0;">
+						<strong>📡 How it works:</strong><br>
+						• Instantly sends <strong>HTTP POST</strong> requests to your webhook URL<br>
+						• Content-Type: <code>application/json</code><br>
+						• Each event includes an <code>event_type</code> field for identification<br>
+						• Webhooks are configured per campaign using Instantly's API
+					</div>
+
+					<div style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 12px; margin: 10px 0;">
+						<strong>⚠️ Requirements:</strong><br>
+						• Valid Instantly API credentials must be configured<br>
+						• Campaign ID must be provided (found in your Instantly campaign URL)<br>
+						• Workflow must be activated to create the webhook
+					</div>
 				`,
+			},
+			{
+				displayName: 'Campaign ID',
+				name: 'campaignId',
+				type: 'string',
+				required: true,
+				default: '',
+				placeholder: 'Enter your Instantly campaign ID',
+				description: 'The ID of the campaign to monitor for webhook events. You can find this in your Instantly campaign URL.',
 			},
 			{
 				displayName: 'Trigger On',
@@ -188,22 +212,88 @@ export class InstantlyTrigger implements INodeType {
 	webhookMethods = {
 		default: {
 			async checkExists(this: IHookFunctions): Promise<boolean> {
-				// Since Instantly webhooks are configured through UI, 
-				// we can't programmatically check if they exist
-				// Always return true to indicate the webhook endpoint is ready
-				return true;
+				try {
+					const campaignId = this.getNodeParameter('campaignId') as string;
+					const webhookUrl = this.getNodeWebhookUrl('default');
+
+					// Get existing webhooks for the campaign
+					const response = await this.helpers.httpRequestWithAuthentication.call(
+						this,
+						'instantlyApi',
+						{
+							method: 'GET',
+							url: `/api/v2/campaigns/webhooks`,
+							qs: { campaign_id: campaignId },
+						},
+					);
+
+					// Check if our webhook URL already exists
+					if (Array.isArray(response)) {
+						return response.some((webhook: any) => webhook.url === webhookUrl);
+					}
+
+					return false;
+				} catch (error) {
+					// If we can't check, assume it doesn't exist
+					return false;
+				}
 			},
 			async create(this: IHookFunctions): Promise<boolean> {
-				// Since Instantly webhooks are configured through UI,
-				// we can't programmatically create them
-				// Always return true to indicate the webhook endpoint is ready
-				return true;
+				try {
+					const campaignId = this.getNodeParameter('campaignId') as string;
+					const events = this.getNodeParameter('events') as string[];
+					const webhookUrl = this.getNodeWebhookUrl('default');
+
+					// Create webhook using the discovered API endpoint
+					const response = await this.helpers.httpRequestWithAuthentication.call(
+						this,
+						'instantlyApi',
+						{
+							method: 'POST',
+							url: `/api/v2/campaigns/webhooks`,
+							body: {
+								campaign_id: campaignId,
+								url: webhookUrl,
+								events: events.includes('*') ? ['*'] : events,
+								active: true,
+							},
+						},
+					);
+
+					// Store webhook ID for later deletion
+					if (response && response.id) {
+						await this.helpers.setValue('webhookId', response.id);
+					}
+
+					return true;
+				} catch (error) {
+					throw new NodeApiError(this.getNode(), error as JsonObject, {
+						message: `Failed to create Instantly webhook: ${error.message}`,
+					});
+				}
 			},
 			async delete(this: IHookFunctions): Promise<boolean> {
-				// Since Instantly webhooks are configured through UI,
-				// we can't programmatically delete them
-				// Always return true to indicate cleanup is complete
-				return true;
+				try {
+					const webhookId = await this.helpers.getValue('webhookId');
+
+					if (webhookId) {
+						// Delete the specific webhook
+						await this.helpers.httpRequestWithAuthentication.call(
+							this,
+							'instantlyApi',
+							{
+								method: 'DELETE',
+								url: `/api/v2/campaigns/webhooks/${webhookId}`,
+							},
+						);
+					}
+
+					return true;
+				} catch (error) {
+					// Don't throw error on deletion failure - just log it
+					console.warn(`Failed to delete Instantly webhook: ${error.message}`);
+					return true;
+				}
 			},
 		},
 	};

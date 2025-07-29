@@ -1,6 +1,14 @@
 # n8n-nodes-instantly
 
-This is an n8n community node for integrating with the [Instantly](https://instantly.ai) API. It allows you to create, retrieve, and manage your Instantly resources directly from n8n workflows.
+This is an n8n community node for integrating with the [Instantly](https://instantly.ai) API. It provides comprehensive integration with **automated webhook management**, allowing you to create, retrieve, and manage your Instantly resources directly from n8n workflows.
+
+## ✨ Key Features
+
+- 🚀 **Automated Webhook Management**: Webhooks are automatically created and deleted via API
+- 📧 **Complete API Coverage**: Support for all major Instantly API v2 endpoints
+- 🎯 **17 Event Types**: Monitor email sends, opens, replies, bounces, and more
+- 🔒 **Secure Authentication**: Bearer token authentication with credential management
+- ⚡ **Zero Manual Setup**: No need to configure webhooks in Instantly dashboard
 
 ## Installation
 
@@ -20,13 +28,29 @@ To install this node manually:
 npm install n8n-nodes-instantly
 ```
 
-## Usage
+## Quick Start
+
+### 🚀 Automated Webhook Setup (InstantlyTrigger)
 
 1. Create an Instantly account at [instantly.ai](https://instantly.ai)
 2. Generate an API key from the Instantly dashboard
-3. In n8n, add the Instantly node to your workflow
-4. Set up the credentials using your Instantly API key
-5. Configure the node options according to your needs
+3. In n8n, add the **InstantlyTrigger** node to your workflow
+4. Configure your Instantly API credentials
+5. Enter your **Campaign ID** (found in your Instantly campaign URL)
+6. Select the events you want to monitor
+7. **Activate the workflow** - webhook is automatically created! ✨
+
+**No manual webhook configuration required!** The node automatically:
+- Creates webhooks when workflows are activated
+- Deletes webhooks when workflows are deactivated
+- Handles all API authentication and error management
+
+### 📧 API Operations (Instantly Node)
+
+1. Add the **Instantly** action node to your workflow
+2. Set up the credentials using your Instantly API key
+3. Choose your operation (Create Lead, Send Campaign, etc.)
+4. Configure the node options according to your needs
 
 ## Features
 
@@ -56,10 +80,10 @@ Perform operations on your Instantly resources:
 - **Update**: Update an existing lead
 - **Delete**: Delete a lead
 
-### ⚡ Instantly Trigger Node (Webhook Trigger)
-Automatically trigger workflows based on Instantly events:
+### ⚡ Instantly Trigger Node (Automated Webhook Trigger)
+🚀 **Fully automated webhook management** - no manual setup required!
 
-#### Supported Webhook Events
+#### 🎯 Supported Webhook Events (17 Total)
 - **Email Events**: `email_sent`, `email_opened`, `email_bounced`, `link_clicked`
 - **Reply Events**: `reply_received`, `auto_reply_received`
 - **Lead Status Events**: `lead_interested`, `lead_not_interested`, `lead_neutral`
@@ -68,19 +92,21 @@ Automatically trigger workflows based on Instantly events:
 - **Campaign Events**: `campaign_completed`, `account_error`
 - **Subscription Events**: `lead_unsubscribed`
 
-#### Trigger Features
-- **Event Filtering**: Choose specific events or monitor all events
-- **Campaign Filtering**: Optionally filter by specific campaign ID
-- **Lead Filtering**: Optionally filter by specific lead email
-- **Easy Setup**: Clear instructions for webhook configuration in Instantly
+#### ✨ Automated Features
+- **🚀 Zero Manual Setup**: Webhooks created automatically via API
+- **🎯 Event Filtering**: Choose specific events or monitor all events
+- **📊 Campaign-Specific**: Monitors events for your specified campaign
+- **🔄 Auto Cleanup**: Webhooks automatically deleted when workflow deactivated
+- **🔒 Secure**: Uses your Instantly API credentials for authentication
+- **⚡ Instant Activation**: Ready to receive events immediately after activation
 
-#### Webhook Setup
-1. Go to your **Instantly Settings**
-2. Navigate to **Integrations** tab
-3. Click **Add Webhook**
-4. Enter the webhook URL provided by the trigger node
-5. Select your campaign and desired events
-6. Click **Add Webhook**
+#### 🛠️ Automated Setup Process
+1. **Configure Campaign ID**: Enter your Instantly campaign ID
+2. **Select Events**: Choose which events to monitor
+3. **Activate Workflow**: Webhook is automatically created! ✨
+4. **Start Receiving Events**: No additional configuration needed
+
+**🎉 That's it!** No manual webhook configuration in Instantly dashboard required.
 
 ## Resources
 

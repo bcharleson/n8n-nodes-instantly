@@ -1,13 +1,18 @@
 {
   "name": "n8n-nodes-instantly",
-  "version": "0.1.7523",
-  "description": "n8n community node for Instantly API v2",
+  "version": "0.2.0",
+  "description": "n8n community node for Instantly API v2 with automated webhook management",
   "keywords": [
     "n8n-community-node-package",
     "instantly",
     "email",
     "outreach",
-    "automation"
+    "automation",
+    "webhook",
+    "trigger",
+    "api",
+    "cold-email",
+    "lead-generation"
   ],
   "license": "MIT",
   "homepage": "https://github.com/brandoncharleson/n8n-nodes-instantly",

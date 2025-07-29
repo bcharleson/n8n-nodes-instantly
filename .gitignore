@@ -37,3 +37,22 @@ webhook-test-data/
 test-results/
 coverage/
 n8n-dev-setup/
+
+# Local development directories (created by testing scripts)
+n8n-dev-instantly*/
+~/n8n-dev-instantly*/
+
+# npm cache and temporary files
+.npm/
+npm-cache-temp/
+*.tmp
+*.temp
+
+# Test package build artifacts (exclude from main repo)
+test-package/node_modules/
+test-package/package-lock.json
+test-package/yarn.lock
+test-package/.npm/
+
+# Generated testing instructions (temporary)
+CLOUD_TESTING_INSTRUCTIONS.md

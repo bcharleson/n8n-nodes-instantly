@@ -1,0 +1,59 @@
+{
+  "name": "n8n-nodes-instantly-testing",
+  "version": "0.1.1",
+  "description": "Testing package for n8n community node for Instantly.ai - InstantlyTrigger webhook node",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "instantly",
+    "webhook",
+    "trigger",
+    "email",
+    "outreach",
+    "testing"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/bcharleson/n8n-nodes-instantly",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bcharleson/n8n-nodes-instantly.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bcharleson/n8n-nodes-instantly/issues"
+  },
+  "author": {
+    "name": "Brandon Charleson",
+    "email": "170791+bcharleson@users.noreply.github.com"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'No build step required for testing package'",
+    "test": "echo 'Testing package - install in n8n to test'",
+    "prepublishOnly": "echo 'Publishing test package to npm'"
+  },
+  "files": [
+    "nodes",
+    "credentials",
+    "package.json",
+    "README.md"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [],
+    "nodes": [
+      "nodes/InstantlyTrigger/InstantlyTrigger.node.js"
+    ]
+  },
+  "devDependencies": {
+    "n8n-workflow": "^1.0.0"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
