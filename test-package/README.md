@@ -2,9 +2,19 @@
 
 ⚠️ **Testing Package** - This is a testing version of the InstantlyTrigger webhook node for n8n. Not intended for production use.
 
+## 🚀 **NEW: Automated Webhook Management!**
+
+This testing version includes **fully automated webhook management** - no manual setup required!
+
+✨ **Key Features:**
+- 🚀 **Zero Manual Setup**: Webhooks automatically created via API
+- 🎯 **Campaign-Specific**: Monitor events for specific campaigns
+- 🔄 **Auto Cleanup**: Webhooks deleted when workflow deactivated
+- 🔒 **Secure**: Uses your Instantly API credentials
+
 ## 🧪 Purpose
 
-This package contains a testing version of the InstantlyTrigger webhook node for n8n, designed to handle webhook events from the Instantly.ai platform. This testing package allows for cloud-based testing of the webhook functionality before the production release.
+This package contains a testing version of the InstantlyTrigger webhook node for n8n, designed to handle webhook events from the Instantly.ai platform with **automated webhook management**. This testing package allows for cloud-based testing of the enhanced webhook functionality before the production release.
 
 ## 📦 Installation
 

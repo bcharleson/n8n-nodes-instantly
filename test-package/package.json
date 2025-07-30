@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-instantly-testing",
-  "version": "0.1.1",
-  "description": "Testing package for n8n community node for Instantly.ai - InstantlyTrigger webhook node",
+  "version": "0.2.0",
+  "description": "Testing package for n8n Instantly.ai node with AUTOMATED webhook management - no manual setup required!",
   "keywords": [
     "n8n-community-node-package",
     "n8n",
