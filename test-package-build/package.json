@@ -1,0 +1,15 @@
+{
+  "name": "n8n-nodes-instantly-test",
+  "version": "0.2.0-alpha.1",
+  "description": "TEST: n8n community node for Instantly API v2 with Email Management",
+  "main": "dist/nodes/InstantlyApi/InstantlyApi.node.js",
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/InstantlyApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/InstantlyApi/InstantlyApi.node.js"
+    ]
+  }
+}
