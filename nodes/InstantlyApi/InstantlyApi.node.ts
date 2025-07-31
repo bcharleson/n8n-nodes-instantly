@@ -16,6 +16,7 @@ import { OperationRouter } from './operations/OperationRouter';
 import { ResourceType, OperationType } from './types/common';
 import { leadParameters } from './parameters/LeadParameters';
 import { campaignParameters } from './parameters/CampaignParameters';
+import { emailParameters } from './parameters/EmailParameters';
 
 // Helper function to format dates for Instantly API (YYYY-MM-DD format)
 function formatDateForApi(dateInput: any): string {
@@ -293,6 +294,10 @@ export class InstantlyApi implements INodeType {
 						value: 'campaign',
 					},
 					{
+						name: 'Email',
+						value: 'email',
+					},
+					{
 						name: 'Lead',
 						value: 'lead',
 					},
@@ -305,6 +310,9 @@ export class InstantlyApi implements INodeType {
 
 			// LEAD OPERATIONS - Using modular parameters
 			...leadParameters,
+
+			// EMAIL OPERATIONS - Using modular parameters
+			...emailParameters,
 
 			// ACCOUNT OPERATIONS
 			{

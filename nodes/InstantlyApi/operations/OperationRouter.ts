@@ -3,6 +3,7 @@ import { AccountOperations } from './AccountOperations';
 import { CampaignOperations } from './CampaignOperations';
 import { LeadOperations } from './LeadOperations';
 import { AnalyticsOperations } from './AnalyticsOperations';
+import { EmailOperations } from './EmailOperations';
 import { ResourceType, OperationType } from '../types/common';
 
 /**
@@ -27,6 +28,8 @@ export class OperationRouter {
 				return await this.handleLeadOperation(context, itemIndex, operation);
 			case 'analytics':
 				return await this.handleAnalyticsOperation(context, itemIndex, operation);
+			case 'email':
+				return await this.handleEmailOperation(context, itemIndex, operation);
 			default:
 				throw new Error(`Unknown resource: ${resource}`);
 		}
@@ -121,6 +124,34 @@ export class OperationRouter {
 				return await AnalyticsOperations.getCampaignAnalytics(context, itemIndex);
 			default:
 				throw new Error(`Unknown analytics operation: ${operation}`);
+		}
+	}
+
+	/**
+	 * Handle email operations
+	 */
+	private static async handleEmailOperation(
+		context: IExecuteFunctions,
+		itemIndex: number,
+		operation: OperationType
+	): Promise<any> {
+		switch (operation) {
+			case 'getMany':
+				return await EmailOperations.getMany(context, itemIndex);
+			case 'get':
+				return await EmailOperations.get(context, itemIndex);
+			case 'reply':
+				return await EmailOperations.reply(context, itemIndex);
+			case 'update':
+				return await EmailOperations.update(context, itemIndex);
+			case 'delete':
+				return await EmailOperations.delete(context, itemIndex);
+			case 'getUnreadCount':
+				return await EmailOperations.getUnreadCount(context, itemIndex);
+			case 'markThreadAsRead':
+				return await EmailOperations.markThreadAsRead(context, itemIndex);
+			default:
+				throw new Error(`Unknown email operation: ${operation}`);
 		}
 	}
 }

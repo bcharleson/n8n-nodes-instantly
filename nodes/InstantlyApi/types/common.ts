@@ -141,5 +141,5 @@ export interface IAnalyticsParams {
 	campaignId?: string;
 }
 
-export type ResourceType = 'account' | 'campaign' | 'lead' | 'analytics';
-export type OperationType = 'addToCampaign' | 'create' | 'get' | 'getMany' | 'update' | 'delete' | 'pause' | 'resume' | 'getCampaignAnalytics' | 'updateInterestStatus';
+export type ResourceType = 'account' | 'campaign' | 'lead' | 'analytics' | 'email';
+export type OperationType = 'addToCampaign' | 'create' | 'get' | 'getMany' | 'update' | 'delete' | 'pause' | 'resume' | 'getCampaignAnalytics' | 'updateInterestStatus' | 'reply' | 'getUnreadCount' | 'markThreadAsRead';
