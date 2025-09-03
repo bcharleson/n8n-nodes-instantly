@@ -13,36 +13,20 @@
   "homepage": "https://github.com/brandoncharleson/n8n-nodes-instantly",
   "author": {
     "name": "Brandon Charleson",
-    "email": "brandon@charleson.dev"
+    "email": "brandon@instantly.ai"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/brandoncharleson/n8n-nodes-instantly.git"
   },
-  "engines": {
-    "node": ">=18.10"
-  },
-  "main": "index.js",
   "scripts": {
-    "build": "tsc && gulp build:icons",
-    "dev": "tsc --watch",
-    "format": "prettier nodes credentials --write",
-    "lint": "eslint nodes/InstantlyApi nodes/generic.functions.ts credentials",
-    "lintfix": "eslint nodes/InstantlyApi nodes/generic.functions.ts credentials --fix",
-    "test": "jest",
-    "test:unit": "jest __tests__/unit",
-    "test:integration": "jest __tests__/integration",
-    "test:e2e": "jest __tests__/e2e",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "type-check": "tsc --noEmit",
-    "dev:setup": "chmod +x scripts/dev-setup.sh && ./scripts/dev-setup.sh",
-    "dev:start": "cd ~/n8n-dev-environment && ./start-dev.sh",
-    "dev:restart": "cd ~/n8n-dev-environment && ./restart-dev.sh",
-    "publish:dev": "npm version prerelease --preid=dev --no-git-tag-version && npm publish --tag dev",
-    "publish:beta": "npm version prerelease --preid=beta && npm publish --tag beta",
-    "publish:rc": "npm version prerelease --preid=rc && npm publish --tag rc",
-    "publish:stable": "npm version patch && npm publish"
+    "build": "n8n-node build",
+    "build:watch": "tsc --watch",
+    "dev": "n8n-node dev",
+    "lint": "n8n-node lint",
+    "lint:fix": "n8n-node lint --fix",
+    "release": "n8n-node release",
+    "prepublishOnly": "n8n-node prerelease"
   },
   "files": [
     "dist"
@@ -57,15 +41,10 @@
     ]
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "^7.15.0",
-    "eslint": "^8.56.0",
-    "eslint-plugin-n8n-nodes-base": "^1.16.1",
-    "gulp": "^4.0.2",
-    "n8n-workflow": "^1.82.0",
-    "prettier": "^3.3.2",
-    "typescript": "^5.5.3"
-  },
-  "peerDependencies": {
-    "n8n-workflow": "^1.82.0"
+    "@n8n/node-cli": "*",
+    "eslint": "9.32.0",
+    "prettier": "3.6.2",
+    "release-it": "^19.0.4",
+    "typescript": "5.9.2"
   }
 }
