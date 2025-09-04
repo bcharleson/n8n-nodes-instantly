@@ -23,92 +23,166 @@
 
 ---
 
-## 🚀 Phase 1 Implementation Plan (16 New Operations)
+## 🚀 REVISED Phase 1 Implementation Plan (User-Centric Prioritization)
 
-### Branch Structure Created:
-- `feature/enhanced-account-management` - 7 new operations
-- `feature/enhanced-campaign-management` - 4 new operations  
-- `feature/enhanced-analytics` - 5 new operations
+### **🎯 NEW PRIORITY FRAMEWORK:**
+**Prioritized by:** Immediate usability + Implementation complexity + User workflow value + Testing requirements
+
+### **📋 Migration Status Update:**
+- **Official Repository Access**: Awaiting permissions for Instantly-ai/n8n-instantly-nodes
+- **Development Strategy**: Continue in bcharleson/n8n-nodes-instantly until official access
+- **Migration Repository**: https://github.com/bcharleson/n8n-instantly-nodes-migration (Ready for transfer)
+- **Stable Master**: Always ready for immediate migration
+
+### Revised Branch Structure:
+- `feature/critical-campaign-account-controls` - 6 critical operations (Phase 1A)
+- `feature/essential-analytics-verification` - 4 essential operations (Phase 1B)
+- `feature/core-email-management` - 2 core operations (Phase 2A)
+- `feature/webhook-foundation` - 3 webhook operations (Phase 2B)
 
 ---
 
-## 🔧 Feature Branch 1: Enhanced Account Management
+## 🔥 Phase 1A: Critical Campaign & Account Controls (HIGHEST PRIORITY)
 
-**Branch:** `feature/enhanced-account-management`  
-**Target Operations:** 7 new operations  
+**Branch:** `feature/critical-campaign-account-controls`
+**Target Operations:** 6 critical operations
 **Status:** 🟡 READY FOR DEVELOPMENT
+**User Impact:** IMMEDIATE - Users need these daily for basic workflow
+**Implementation Complexity:** LOW - Simple API calls with existing patterns
 
 ### Operations to Implement:
 
-#### 1.1 Create Account
-- **Endpoint:** `POST /api/v2/accounts`
-- **Priority:** HIGH
+#### 1A.1 Launch Campaign ⭐ CRITICAL
+- **Endpoint:** `POST /api/v2/campaigns/{id}/activate`
+- **Priority:** CRITICAL - Users need this daily
 - **Status:** ⏳ NOT STARTED
+- **Implementation:** Simple POST with campaign ID
+- **Testing Requirements:**
+  - [ ] Campaign activation success
+  - [ ] Already active campaign handling
+  - [ ] Invalid campaign ID handling
+  - [ ] Prerequisites validation (leads, accounts)
+  - [ ] Status confirmation
+
+#### 1A.2 Pause Campaign ⭐ CRITICAL
+- **Endpoint:** `POST /api/v2/campaigns/{id}/pause`
+- **Priority:** CRITICAL - Users need this daily
+- **Status:** ⏳ NOT STARTED
+- **Implementation:** Simple POST with campaign ID
+- **Testing Requirements:**
+  - [ ] Campaign pausing success
+  - [ ] Already paused campaign handling
+  - [ ] Invalid campaign ID handling
+  - [ ] In-progress email handling
+  - [ ] Status confirmation
+
+#### 1A.3 Enable Account Warmup ⭐ CRITICAL
+- **Endpoint:** `POST /api/v2/accounts/warmup/enable`
+- **Priority:** CRITICAL - Essential for deliverability
+- **Status:** ⏳ NOT STARTED
+- **Implementation:** Simple POST with account email
+- **Testing Requirements:**
+  - [ ] Warmup activation success
+  - [ ] Already enabled handling
+  - [ ] Invalid account handling
+  - [ ] Account validation
+  - [ ] Status confirmation
+
+#### 1A.4 Disable Account Warmup ⭐ CRITICAL
+- **Endpoint:** `POST /api/v2/accounts/warmup/disable`
+- **Priority:** CRITICAL - Essential for deliverability control
+- **Status:** ⏳ NOT STARTED
+- **Implementation:** Simple POST with account email
+- **Testing Requirements:**
+  - [ ] Warmup deactivation success
+  - [ ] Already disabled handling
+  - [ ] Invalid account handling
+  - [ ] Account validation
+  - [ ] Status confirmation
+
+#### 1A.5 Create Account 🔥 HIGH
+- **Endpoint:** `POST /api/v2/accounts`
+- **Priority:** HIGH - Basic account management
+- **Status:** ⏳ NOT STARTED
+- **Implementation:** POST with account details
 - **Testing Requirements:**
   - [ ] Valid email account creation
   - [ ] Duplicate email handling
   - [ ] Required field validation
+  - [ ] SMTP settings validation
   - [ ] Error response handling
 
-#### 1.2 Delete Account  
+#### 1A.6 Delete Account 🔥 HIGH
 - **Endpoint:** `DELETE /api/v2/accounts/{email}`
-- **Priority:** HIGH
+- **Priority:** HIGH - Basic account management
 - **Status:** ⏳ NOT STARTED
+- **Implementation:** Simple DELETE with email
 - **Testing Requirements:**
   - [ ] Successful account deletion
   - [ ] Non-existent account handling
   - [ ] Confirmation workflow
   - [ ] Cascade deletion effects
+  - [ ] Active campaign handling
 
-#### 1.3 Enable Warmup
-- **Endpoint:** `POST /api/v2/accounts/warmup/enable`
-- **Priority:** HIGH
-- **Status:** ⏳ NOT STARTED
-- **Testing Requirements:**
-  - [ ] Warmup activation
-  - [ ] Already enabled handling
-  - [ ] Account validation
-  - [ ] Status confirmation
+---
 
-#### 1.4 Disable Warmup
-- **Endpoint:** `POST /api/v2/accounts/warmup/disable`
-- **Priority:** HIGH  
-- **Status:** ⏳ NOT STARTED
-- **Testing Requirements:**
-  - [ ] Warmup deactivation
-  - [ ] Already disabled handling
-  - [ ] Account validation
-  - [ ] Status confirmation
+## 📊 Phase 1B: Essential Analytics & Verification (HIGH PRIORITY)
 
-#### 1.5 Get Warmup Analytics
-- **Endpoint:** `POST /api/v2/accounts/warmup-analytics`
-- **Priority:** MEDIUM
+**Branch:** `feature/essential-analytics-verification`
+**Target Operations:** 4 essential operations
+**Status:** 🟡 READY FOR DEVELOPMENT
+**User Impact:** HIGH - Users check performance and verify emails daily
+**Implementation Complexity:** LOW-MEDIUM - Simple GET requests with filtering
+
+### Operations to Implement:
+
+#### 1B.1 Get Analytics Overview 📈 HIGH
+- **Endpoint:** `GET /api/v2/campaigns/analytics/overview`
+- **Priority:** HIGH - Users check performance daily
 - **Status:** ⏳ NOT STARTED
+- **Implementation:** GET with optional campaign filtering
 - **Testing Requirements:**
-  - [ ] Analytics data retrieval
+  - [ ] Overview data retrieval
+  - [ ] Multiple campaign aggregation
   - [ ] Date range filtering
+  - [ ] Key metrics display (opens, clicks, replies)
+  - [ ] Performance indicators
+
+#### 1B.2 Get Daily Analytics 📈 HIGH
+- **Endpoint:** `GET /api/v2/campaigns/analytics/daily`
+- **Priority:** HIGH - Daily performance tracking
+- **Status:** ⏳ NOT STARTED
+- **Implementation:** GET with date range parameters
+- **Testing Requirements:**
+  - [ ] Daily breakdown data
+  - [ ] Date range validation
+  - [ ] Campaign filtering
+  - [ ] Trend analysis support
+  - [ ] Data format consistency
+
+#### 1B.3 Get Unread Email Count 📧 HIGH
+- **Endpoint:** `GET /api/v2/emails/unread/count`
+- **Priority:** HIGH - Users need to know pending responses
+- **Status:** ⏳ NOT STARTED
+- **Implementation:** Simple GET request
+- **Testing Requirements:**
+  - [ ] Accurate unread count
   - [ ] Account filtering
-  - [ ] Data format validation
+  - [ ] Real-time updates
+  - [ ] Performance optimization
+  - [ ] Error handling
 
-#### 1.6 Test Account Vitals
-- **Endpoint:** `POST /api/v2/accounts/test/vitals`
-- **Priority:** MEDIUM
+#### 1B.4 Verify Email Address ✅ HIGH
+- **Endpoint:** `POST /api/v2/email-verification`
+- **Priority:** HIGH - Quality control for lead lists
 - **Status:** ⏳ NOT STARTED
+- **Implementation:** POST with email address
 - **Testing Requirements:**
-  - [ ] Account health testing
-  - [ ] Connection validation
-  - [ ] Response time measurement
-  - [ ] Error condition handling
-
-#### 1.7 Get Account Campaign Mapping
-- **Endpoint:** `GET /api/v2/account-campaign-mappings/{email}`
-- **Priority:** LOW
-- **Status:** ⏳ NOT STARTED
-- **Testing Requirements:**
-  - [ ] Mapping data retrieval
-  - [ ] Account validation
-  - [ ] Campaign relationship display
-  - [ ] Empty mapping handling
+  - [ ] Email validation accuracy
+  - [ ] Bulk verification support
+  - [ ] Result interpretation
+  - [ ] Rate limit handling
+  - [ ] Error response handling
 
 ---
 
