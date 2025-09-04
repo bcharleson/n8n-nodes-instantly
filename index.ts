@@ -1,5 +1,5 @@
-import { InstantlyApi } from './nodes/InstantlyApi/InstantlyApi.node';
-import { InstantlyApi as InstantlyApiCredentials } from './credentials/InstantlyApi.credentials';
+import { InstantlyApi } from './src/nodes/InstantlyApi/InstantlyApi.node';
+import { InstantlyApi as InstantlyApiCredentials } from './src/credentials/InstantlyApi.credentials';
 
 // This exports the nodes for n8n to load
 export const nodeTypes = {

@@ -74,6 +74,12 @@ This node supports the following resources and operations:
 - [Instantly API Documentation](https://developer.instantly.ai/api/v2)
 - [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/)
 
+## Support
+
+For questions or issues related to this n8n community node, please contact:
+- **Email**: brandon@instantly.ai
+- **GitHub Issues**: [Report issues here](https://github.com/brandoncharleson/n8n-nodes-instantly/issues)
+
 ## License
 
 [MIT](LICENSE.md)
