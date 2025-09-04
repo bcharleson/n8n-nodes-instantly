@@ -397,8 +397,8 @@
 - ✅ Update Account - Visible in interface
 - ❓ Create Account - **TESTING REQUIRED**
 - ❓ Delete Account - **TESTING REQUIRED**
-- ❓ Enable Warmup - **TESTING REQUIRED**
-- ❓ Disable Warmup - **TESTING REQUIRED**
+- ✅ **Enable Warmup - ENHANCED with bulk operations & exclusions**
+- ✅ **Disable Warmup - ENHANCED with bulk operations & exclusions**
 
 **Campaign Operations (Expected: 7)**
 - ✅ Create Campaign - Visible in interface
@@ -467,7 +467,37 @@
 3. **Automation Testing**: Test scheduled and triggered workflows
 4. **Regression Testing**: Ensure existing operations still work
 
+### **🚀 WARMUP OPERATIONS ENHANCEMENT COMPLETED:**
+
+#### **✅ Advanced Warmup Features Implemented:**
+1. **Bulk Operations Support**:
+   - "Apply to All Emails" toggle for workspace-wide warmup control
+   - Smart parameter visibility (single account vs bulk mode)
+   - Comprehensive bulk operation results with success/failure tracking
+
+2. **Exclusion Management**:
+   - "Excluded Emails" multi-select dropdown with account search
+   - Real-time account loading from Instantly API
+   - Intuitive account selection with name and email display
+
+3. **Enhanced API Integration**:
+   - Backward compatible single account operations
+   - Advanced bulk processing with individual error handling
+   - Detailed operation feedback and status reporting
+
+4. **User Experience Improvements**:
+   - Conditional parameter display based on operation mode
+   - Clear operation flow: Toggle → Account Selection/Exclusions
+   - Comprehensive error messages and operation results
+
+#### **🔧 Technical Implementation Details:**
+- **AccountParameters.ts**: Enhanced with conditional parameter visibility
+- **AccountOperations.ts**: Advanced bulk processing logic with error handling
+- **InstantlyApi.node.ts**: Added loadOptions method for account multi-select
+- **API Endpoints**: POST /api/v2/accounts/warmup/enable & /disable
+
 ### **Quality Gates:**
+- [x] **Enhanced warmup operations with bulk functionality**
 - [ ] All 25 operations visible in n8n interface
 - [ ] All operations execute successfully with valid inputs
 - [ ] Error handling works correctly for invalid inputs
