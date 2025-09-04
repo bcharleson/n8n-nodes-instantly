@@ -51,6 +51,14 @@ export class OperationRouter {
 				return await AccountOperations.resume(context, itemIndex);
 			case 'update':
 				return await AccountOperations.update(context, itemIndex);
+			case 'create':
+				return await AccountOperations.create(context, itemIndex);
+			case 'deleteAccount':
+				return await AccountOperations.deleteAccount(context, itemIndex);
+			case 'enableWarmup':
+				return await AccountOperations.enableWarmup(context, itemIndex);
+			case 'disableWarmup':
+				return await AccountOperations.disableWarmup(context, itemIndex);
 			default:
 				throw new Error(`Unknown account operation: ${operation}`);
 		}
@@ -75,6 +83,10 @@ export class OperationRouter {
 				return await CampaignOperations.update(context, itemIndex);
 			case 'delete':
 				return await CampaignOperations.delete(context, itemIndex);
+			case 'launch':
+				return await CampaignOperations.launch(context, itemIndex);
+			case 'pause':
+				return await CampaignOperations.pause(context, itemIndex);
 			default:
 				throw new Error(`Unknown campaign operation: ${operation}`);
 		}

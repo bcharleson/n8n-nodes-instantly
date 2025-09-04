@@ -157,4 +157,119 @@ export class AccountOperations {
 
 		return await instantlyApiRequest.call(context, 'PATCH', `/api/v2/accounts/${emailAccount}`, updateBody);
 	}
+
+	/**
+	 * Enable warmup for an account
+	 * Phase 1A: Critical Account Control
+	 */
+	static async enableWarmup(context: IExecuteFunctions, itemIndex: number): Promise<any> {
+		const emailAccount = getEmailAccount(context, itemIndex);
+
+		try {
+			const body = { email: emailAccount };
+			return await instantlyApiRequest.call(context, 'POST', '/api/v2/accounts/warmup/enable', body);
+		} catch (error: any) {
+			// Handle specific error cases for warmup enable operation
+			if (error.response?.statusCode === 404) {
+				throw new NodeOperationError(context.getNode(), `Email account '${emailAccount}' not found. Please verify the email address is correct and the account exists in your Instantly workspace.`, { itemIndex });
+			} else if (error.response?.statusCode === 400 || error.response?.statusCode === 422) {
+				// Account might already have warmup enabled or be in an invalid state
+				const errorMessage = error.response?.body?.message || error.message;
+				throw new NodeOperationError(context.getNode(), `Cannot enable warmup for account '${emailAccount}'. ${errorMessage}. The account may already have warmup enabled or not be properly configured.`, { itemIndex });
+			} else {
+				// Re-throw other errors with more context
+				throw new NodeOperationError(context.getNode(), `Failed to enable warmup for account '${emailAccount}': ${error.message}`, { itemIndex });
+			}
+		}
+	}
+
+	/**
+	 * Disable warmup for an account
+	 * Phase 1A: Critical Account Control
+	 */
+	static async disableWarmup(context: IExecuteFunctions, itemIndex: number): Promise<any> {
+		const emailAccount = getEmailAccount(context, itemIndex);
+
+		try {
+			const body = { email: emailAccount };
+			return await instantlyApiRequest.call(context, 'POST', '/api/v2/accounts/warmup/disable', body);
+		} catch (error: any) {
+			// Handle specific error cases for warmup disable operation
+			if (error.response?.statusCode === 404) {
+				throw new NodeOperationError(context.getNode(), `Email account '${emailAccount}' not found. Please verify the email address is correct and the account exists in your Instantly workspace.`, { itemIndex });
+			} else if (error.response?.statusCode === 400 || error.response?.statusCode === 422) {
+				// Account might already have warmup disabled or be in an invalid state
+				const errorMessage = error.response?.body?.message || error.message;
+				throw new NodeOperationError(context.getNode(), `Cannot disable warmup for account '${emailAccount}'. ${errorMessage}. The account may already have warmup disabled.`, { itemIndex });
+			} else {
+				// Re-throw other errors with more context
+				throw new NodeOperationError(context.getNode(), `Failed to disable warmup for account '${emailAccount}': ${error.message}`, { itemIndex });
+			}
+		}
+	}
+
+	/**
+	 * Create a new account
+	 * Phase 1A: Critical Account Management
+	 */
+	static async create(context: IExecuteFunctions, itemIndex: number): Promise<any> {
+		// Required fields
+		const email = context.getNodeParameter('email', itemIndex) as string;
+		const password = context.getNodeParameter('password', itemIndex) as string;
+		const smtpHost = context.getNodeParameter('smtpHost', itemIndex) as string;
+		const smtpPort = context.getNodeParameter('smtpPort', itemIndex) as number;
+
+		// Additional fields
+		const additionalFields = context.getNodeParameter('additionalFields', itemIndex, {}) as any;
+
+		const body: any = {
+			email,
+			password,
+			smtp_host: smtpHost,
+			smtp_port: smtpPort,
+		};
+
+		// Add optional fields if provided
+		if (additionalFields.firstName) body.first_name = additionalFields.firstName;
+		if (additionalFields.lastName) body.last_name = additionalFields.lastName;
+		if (additionalFields.signature) body.signature = additionalFields.signature;
+		if (additionalFields.warmupEnabled !== undefined) body.warmup_enabled = additionalFields.warmupEnabled;
+
+		try {
+			return await instantlyApiRequest.call(context, 'POST', '/api/v2/accounts', body);
+		} catch (error: any) {
+			// Handle specific error cases for account creation
+			if (error.response?.statusCode === 400 || error.response?.statusCode === 422) {
+				const errorMessage = error.response?.body?.message || error.message;
+				throw new NodeOperationError(context.getNode(), `Cannot create account '${email}'. ${errorMessage}. Please verify all account details are correct and the email is not already in use.`, { itemIndex });
+			} else {
+				// Re-throw other errors with more context
+				throw new NodeOperationError(context.getNode(), `Failed to create account '${email}': ${error.message}`, { itemIndex });
+			}
+		}
+	}
+
+	/**
+	 * Delete an account
+	 * Phase 1A: Critical Account Management
+	 */
+	static async deleteAccount(context: IExecuteFunctions, itemIndex: number): Promise<any> {
+		const emailAccount = getEmailAccount(context, itemIndex);
+
+		try {
+			return await instantlyApiRequest.call(context, 'DELETE', `/api/v2/accounts/${emailAccount}`);
+		} catch (error: any) {
+			// Handle specific error cases for account deletion
+			if (error.response?.statusCode === 404) {
+				throw new NodeOperationError(context.getNode(), `Email account '${emailAccount}' not found. Please verify the email address is correct and the account exists in your Instantly workspace.`, { itemIndex });
+			} else if (error.response?.statusCode === 400 || error.response?.statusCode === 422) {
+				// Account might be in use by active campaigns
+				const errorMessage = error.response?.body?.message || error.message;
+				throw new NodeOperationError(context.getNode(), `Cannot delete account '${emailAccount}'. ${errorMessage}. The account may be assigned to active campaigns. Please pause or remove the account from campaigns first.`, { itemIndex });
+			} else {
+				// Re-throw other errors with more context
+				throw new NodeOperationError(context.getNode(), `Failed to delete account '${emailAccount}': ${error.message}`, { itemIndex });
+			}
+		}
+	}
 }

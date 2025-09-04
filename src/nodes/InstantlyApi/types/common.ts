@@ -142,4 +142,4 @@ export interface IAnalyticsParams {
 }
 
 export type ResourceType = 'account' | 'campaign' | 'lead' | 'analytics';
-export type OperationType = 'addToCampaign' | 'create' | 'get' | 'getMany' | 'update' | 'delete' | 'pause' | 'resume' | 'getCampaignAnalytics' | 'updateInterestStatus';
+export type OperationType = 'addToCampaign' | 'create' | 'get' | 'getMany' | 'update' | 'delete' | 'pause' | 'resume' | 'getCampaignAnalytics' | 'updateInterestStatus' | 'launch' | 'deleteAccount' | 'enableWarmup' | 'disableWarmup';

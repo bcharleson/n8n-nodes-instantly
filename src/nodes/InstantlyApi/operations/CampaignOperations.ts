@@ -461,4 +461,52 @@ export class CampaignOperations {
 		const campaignId = getCampaignId(context, itemIndex);
 		return await instantlyApiRequest.call(context, 'DELETE', `/api/v2/campaigns/${campaignId}`);
 	}
+
+	/**
+	 * Launch (activate) a campaign
+	 * Phase 1A: Critical Campaign Control
+	 */
+	static async launch(context: IExecuteFunctions, itemIndex: number): Promise<any> {
+		const campaignId = getCampaignId(context, itemIndex);
+
+		try {
+			return await instantlyApiRequest.call(context, 'POST', `/api/v2/campaigns/${campaignId}/activate`);
+		} catch (error: any) {
+			// Handle specific error cases for launch operation
+			if (error.response?.statusCode === 404) {
+				throw new NodeOperationError(context.getNode(), `Campaign with ID '${campaignId}' not found. Please verify the campaign ID is correct and the campaign exists in your Instantly workspace.`, { itemIndex });
+			} else if (error.response?.statusCode === 400 || error.response?.statusCode === 422) {
+				// Campaign might already be active or missing prerequisites
+				const errorMessage = error.response?.body?.message || error.message;
+				throw new NodeOperationError(context.getNode(), `Cannot launch campaign '${campaignId}'. ${errorMessage}. Please check that the campaign has leads, assigned email accounts, and all required settings are configured.`, { itemIndex });
+			} else {
+				// Re-throw other errors with more context
+				throw new NodeOperationError(context.getNode(), `Failed to launch campaign '${campaignId}': ${error.message}`, { itemIndex });
+			}
+		}
+	}
+
+	/**
+	 * Pause a campaign
+	 * Phase 1A: Critical Campaign Control
+	 */
+	static async pause(context: IExecuteFunctions, itemIndex: number): Promise<any> {
+		const campaignId = getCampaignId(context, itemIndex);
+
+		try {
+			return await instantlyApiRequest.call(context, 'POST', `/api/v2/campaigns/${campaignId}/pause`);
+		} catch (error: any) {
+			// Handle specific error cases for pause operation
+			if (error.response?.statusCode === 404) {
+				throw new NodeOperationError(context.getNode(), `Campaign with ID '${campaignId}' not found. Please verify the campaign ID is correct and the campaign exists in your Instantly workspace.`, { itemIndex });
+			} else if (error.response?.statusCode === 400 || error.response?.statusCode === 422) {
+				// Campaign might already be paused or in an invalid state
+				const errorMessage = error.response?.body?.message || error.message;
+				throw new NodeOperationError(context.getNode(), `Cannot pause campaign '${campaignId}'. ${errorMessage}. The campaign may already be paused or not in a state that allows pausing.`, { itemIndex });
+			} else {
+				// Re-throw other errors with more context
+				throw new NodeOperationError(context.getNode(), `Failed to pause campaign '${campaignId}': ${error.message}`, { itemIndex });
+			}
+		}
+	}
 }

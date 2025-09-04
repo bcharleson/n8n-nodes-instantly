@@ -43,6 +43,30 @@ export const accountParameters: INodeProperties[] = [
 				action: 'Resume an email account',
 			},
 			{
+				name: 'Create Account',
+				value: 'create',
+				description: 'Create a new email account',
+				action: 'Create an email account',
+			},
+			{
+				name: 'Delete Account',
+				value: 'deleteAccount',
+				description: 'Delete an email account',
+				action: 'Delete an email account',
+			},
+			{
+				name: 'Enable Warmup',
+				value: 'enableWarmup',
+				description: 'Enable warmup for an email account',
+				action: 'Enable account warmup',
+			},
+			{
+				name: 'Disable Warmup',
+				value: 'disableWarmup',
+				description: 'Disable warmup for an email account',
+				action: 'Disable account warmup',
+			},
+			{
 				name: 'Update Account',
 				value: 'update',
 				description: 'Update account settings and details',
@@ -80,7 +104,7 @@ export const accountParameters: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['account'],
-				operation: ['get', 'pause', 'resume', 'update'],
+				operation: ['get', 'pause', 'resume', 'update', 'deleteAccount', 'enableWarmup', 'disableWarmup'],
 			},
 		},
 		description: 'The email account to operate on. Choose from the list, or specify an email address.',
@@ -282,6 +306,115 @@ export const accountParameters: INodeProperties[] = [
 				type: 'number',
 				default: 5,
 				description: 'The daily increase for warmup',
+			},
+		],
+	},
+
+	// CREATE ACCOUNT PARAMETERS
+	{
+		displayName: 'Email',
+		name: 'email',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['account'],
+				operation: ['create'],
+			},
+		},
+		default: '',
+		placeholder: 'user@example.com',
+		description: 'The email address for the new account',
+	},
+	{
+		displayName: 'Password',
+		name: 'password',
+		type: 'string',
+		typeOptions: {
+			password: true,
+		},
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['account'],
+				operation: ['create'],
+			},
+		},
+		default: '',
+		description: 'The password for the email account',
+	},
+	{
+		displayName: 'SMTP Host',
+		name: 'smtpHost',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['account'],
+				operation: ['create'],
+			},
+		},
+		default: '',
+		placeholder: 'smtp.gmail.com',
+		description: 'The SMTP server hostname',
+	},
+	{
+		displayName: 'SMTP Port',
+		name: 'smtpPort',
+		type: 'number',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['account'],
+				operation: ['create'],
+			},
+		},
+		default: 587,
+		description: 'The SMTP server port (usually 587 for TLS or 465 for SSL)',
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['account'],
+				operation: ['create'],
+			},
+		},
+		options: [
+			{
+				displayName: 'First Name',
+				name: 'firstName',
+				type: 'string',
+				default: '',
+				description: 'First name for the account',
+			},
+			{
+				displayName: 'Last Name',
+				name: 'lastName',
+				type: 'string',
+				default: '',
+				description: 'Last name for the account',
+			},
+			{
+				displayName: 'Signature',
+				name: 'signature',
+				type: 'string',
+				typeOptions: {
+					rows: 4,
+				},
+				default: '',
+				description: 'Email signature for the account',
+			},
+			{
+				displayName: 'Enable Warmup',
+				name: 'warmupEnabled',
+				type: 'boolean',
+				default: true,
+				description: 'Whether to enable warmup for this account',
 			},
 		],
 	},

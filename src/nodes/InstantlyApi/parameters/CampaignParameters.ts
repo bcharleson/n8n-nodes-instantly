@@ -44,6 +44,18 @@ export const campaignParameters: INodeProperties[] = [
 				action: 'Get many campaigns',
 			},
 			{
+				name: 'Launch',
+				value: 'launch',
+				description: 'Launch (activate) a campaign',
+				action: 'Launch a campaign',
+			},
+			{
+				name: 'Pause',
+				value: 'pause',
+				description: 'Pause a campaign',
+				action: 'Pause a campaign',
+			},
+			{
 				name: 'Update',
 				value: 'update',
 				description: 'Update a campaign',
@@ -81,7 +93,7 @@ export const campaignParameters: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['campaign'],
-				operation: ['get', 'update', 'delete'],
+				operation: ['get', 'update', 'delete', 'launch', 'pause'],
 			},
 		},
 		description: 'The campaign to operate on. Choose from the list, or specify an ID.',
