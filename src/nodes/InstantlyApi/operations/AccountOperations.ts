@@ -195,15 +195,69 @@ export class AccountOperations {
 
 				for (const email of targetEmails) {
 					try {
-						const body = { email };
-						const result = await instantlyApiRequest.call(context, 'POST', '/api/v2/accounts/warmup/enable', body);
+						// Try multiple approaches to find the correct API endpoint
+						let result;
+						let lastError;
+
+						// Approach 1: Try path-based URL like pause/resume operations
+						try {
+							const options1 = {
+								method: 'POST' as const,
+								url: `https://api.instantly.ai/api/v2/accounts/${email}/warmup/enable`,
+								headers: {},
+							};
+							result = await context.helpers.httpRequestWithAuthentication.call(context, 'instantlyApi', options1);
+						} catch (error1: any) {
+							lastError = error1;
+
+							// Approach 2: Try the original body-based approach
+							try {
+								const body = { email };
+								result = await instantlyApiRequest.call(context, 'POST', '/api/v2/accounts/warmup/enable', body);
+							} catch (error2: any) {
+								lastError = error2;
+
+								// Approach 3: Try alternative endpoint patterns
+								try {
+									const options3 = {
+										method: 'POST' as const,
+										url: `https://api.instantly.ai/api/v2/accounts/${email}/enable-warmup`,
+										headers: {},
+									};
+									result = await context.helpers.httpRequestWithAuthentication.call(context, 'instantlyApi', options3);
+								} catch (error3: any) {
+									// All approaches failed, throw the last error
+									throw lastError;
+								}
+							}
+						}
+
 						results.push({ email, success: true, result });
 						successCount++;
 					} catch (error: any) {
+						// Parse the actual error message from the API response
+						let errorMessage = error.message;
+						if (error.response?.body) {
+							if (typeof error.response.body === 'string') {
+								errorMessage = error.response.body;
+							} else if (error.response.body.message) {
+								errorMessage = error.response.body.message;
+							} else if (error.response.body.error) {
+								errorMessage = error.response.body.error;
+							}
+						}
+
+						// Check for specific warmup status errors
+						if (errorMessage.toLowerCase().includes('already enabled') || errorMessage.toLowerCase().includes('warmup is already active')) {
+							errorMessage = `Warmup is already enabled for account ${email}`;
+						} else if (errorMessage.toLowerCase().includes('already disabled') || errorMessage.toLowerCase().includes('warmup is already paused')) {
+							errorMessage = `Warmup is already disabled for account ${email}`;
+						}
+
 						results.push({
 							email,
 							success: false,
-							error: error.response?.body?.message || error.message
+							error: errorMessage
 						});
 						errorCount++;
 					}
@@ -219,25 +273,72 @@ export class AccountOperations {
 					results
 				};
 			} else {
-				// Single account operation
+				// Single account operation - try multiple approaches
 				const emailAccount = getEmailAccount(context, itemIndex);
-				const body = { email: emailAccount };
-				return await instantlyApiRequest.call(context, 'POST', '/api/v2/accounts/warmup/enable', body);
+				let lastError;
+
+				// Approach 1: Try path-based URL like pause/resume operations
+				try {
+					const options1 = {
+						method: 'POST' as const,
+						url: `https://api.instantly.ai/api/v2/accounts/${emailAccount}/warmup/enable`,
+						headers: {},
+					};
+					return await context.helpers.httpRequestWithAuthentication.call(context, 'instantlyApi', options1);
+				} catch (error1: any) {
+					lastError = error1;
+
+					// Approach 2: Try the original body-based approach
+					try {
+						const body = { email: emailAccount };
+						return await instantlyApiRequest.call(context, 'POST', '/api/v2/accounts/warmup/enable', body);
+					} catch (error2: any) {
+						lastError = error2;
+
+						// Approach 3: Try alternative endpoint patterns
+						try {
+							const options3 = {
+								method: 'POST' as const,
+								url: `https://api.instantly.ai/api/v2/accounts/${emailAccount}/enable-warmup`,
+								headers: {},
+							};
+							return await context.helpers.httpRequestWithAuthentication.call(context, 'instantlyApi', options3);
+						} catch (error3: any) {
+							// All approaches failed, throw the last error
+							throw lastError;
+						}
+					}
+				}
 			}
 		} catch (error: any) {
+			// Enhanced error handling with specific messages
+			const emailAccount = allEmails ? 'accounts' : getEmailAccount(context, itemIndex);
+
+			// Parse the actual error message from the API response
+			let errorMessage = error.message;
+			if (error.response?.body) {
+				if (typeof error.response.body === 'string') {
+					errorMessage = error.response.body;
+				} else if (error.response.body.message) {
+					errorMessage = error.response.body.message;
+				} else if (error.response.body.error) {
+					errorMessage = error.response.body.error;
+				}
+			}
+
 			// Handle specific error cases for warmup enable operation
 			if (error.response?.statusCode === 404) {
-				const emailAccount = allEmails ? 'one or more accounts' : getEmailAccount(context, itemIndex);
 				throw new NodeOperationError(context.getNode(), `Email account '${emailAccount}' not found. Please verify the email address is correct and the account exists in your Instantly workspace.`, { itemIndex });
 			} else if (error.response?.statusCode === 400 || error.response?.statusCode === 422) {
-				// Account might already have warmup enabled or be in an invalid state
-				const errorMessage = error.response?.body?.message || error.message;
-				const emailAccount = allEmails ? 'one or more accounts' : getEmailAccount(context, itemIndex);
-				throw new NodeOperationError(context.getNode(), `Cannot enable warmup for account '${emailAccount}'. ${errorMessage}. The account may already have warmup enabled or not be properly configured.`, { itemIndex });
+				// Check for specific warmup status errors
+				if (errorMessage.toLowerCase().includes('already enabled') || errorMessage.toLowerCase().includes('warmup is already active')) {
+					throw new NodeOperationError(context.getNode(), `Warmup is already enabled for account '${emailAccount}'. No action needed.`, { itemIndex });
+				} else {
+					throw new NodeOperationError(context.getNode(), `Cannot enable warmup for account '${emailAccount}': ${errorMessage}`, { itemIndex });
+				}
 			} else {
-				// Re-throw other errors with more context
-				const emailAccount = allEmails ? 'accounts' : getEmailAccount(context, itemIndex);
-				throw new NodeOperationError(context.getNode(), `Failed to enable warmup for ${emailAccount}: ${error.message}`, { itemIndex });
+				// Re-throw other errors with the actual API error message
+				throw new NodeOperationError(context.getNode(), `Failed to enable warmup for ${emailAccount}: ${errorMessage}`, { itemIndex });
 			}
 		}
 	}
@@ -279,15 +380,69 @@ export class AccountOperations {
 
 				for (const email of targetEmails) {
 					try {
-						const body = { email };
-						const result = await instantlyApiRequest.call(context, 'POST', '/api/v2/accounts/warmup/disable', body);
+						// Try multiple approaches to find the correct API endpoint
+						let result;
+						let lastError;
+
+						// Approach 1: Try path-based URL like pause/resume operations
+						try {
+							const options1 = {
+								method: 'POST' as const,
+								url: `https://api.instantly.ai/api/v2/accounts/${email}/warmup/disable`,
+								headers: {},
+							};
+							result = await context.helpers.httpRequestWithAuthentication.call(context, 'instantlyApi', options1);
+						} catch (error1: any) {
+							lastError = error1;
+
+							// Approach 2: Try the original body-based approach
+							try {
+								const body = { email };
+								result = await instantlyApiRequest.call(context, 'POST', '/api/v2/accounts/warmup/disable', body);
+							} catch (error2: any) {
+								lastError = error2;
+
+								// Approach 3: Try alternative endpoint patterns
+								try {
+									const options3 = {
+										method: 'POST' as const,
+										url: `https://api.instantly.ai/api/v2/accounts/${email}/disable-warmup`,
+										headers: {},
+									};
+									result = await context.helpers.httpRequestWithAuthentication.call(context, 'instantlyApi', options3);
+								} catch (error3: any) {
+									// All approaches failed, throw the last error
+									throw lastError;
+								}
+							}
+						}
+
 						results.push({ email, success: true, result });
 						successCount++;
 					} catch (error: any) {
+						// Parse the actual error message from the API response
+						let errorMessage = error.message;
+						if (error.response?.body) {
+							if (typeof error.response.body === 'string') {
+								errorMessage = error.response.body;
+							} else if (error.response.body.message) {
+								errorMessage = error.response.body.message;
+							} else if (error.response.body.error) {
+								errorMessage = error.response.body.error;
+							}
+						}
+
+						// Check for specific warmup status errors
+						if (errorMessage.toLowerCase().includes('already disabled') || errorMessage.toLowerCase().includes('warmup is already paused')) {
+							errorMessage = `Warmup is already disabled for account ${email}`;
+						} else if (errorMessage.toLowerCase().includes('already enabled') || errorMessage.toLowerCase().includes('warmup is already active')) {
+							errorMessage = `Warmup is already enabled for account ${email}`;
+						}
+
 						results.push({
 							email,
 							success: false,
-							error: error.response?.body?.message || error.message
+							error: errorMessage
 						});
 						errorCount++;
 					}
@@ -303,25 +458,72 @@ export class AccountOperations {
 					results
 				};
 			} else {
-				// Single account operation
+				// Single account operation - try multiple approaches
 				const emailAccount = getEmailAccount(context, itemIndex);
-				const body = { email: emailAccount };
-				return await instantlyApiRequest.call(context, 'POST', '/api/v2/accounts/warmup/disable', body);
+				let lastError;
+
+				// Approach 1: Try path-based URL like pause/resume operations
+				try {
+					const options1 = {
+						method: 'POST' as const,
+						url: `https://api.instantly.ai/api/v2/accounts/${emailAccount}/warmup/disable`,
+						headers: {},
+					};
+					return await context.helpers.httpRequestWithAuthentication.call(context, 'instantlyApi', options1);
+				} catch (error1: any) {
+					lastError = error1;
+
+					// Approach 2: Try the original body-based approach
+					try {
+						const body = { email: emailAccount };
+						return await instantlyApiRequest.call(context, 'POST', '/api/v2/accounts/warmup/disable', body);
+					} catch (error2: any) {
+						lastError = error2;
+
+						// Approach 3: Try alternative endpoint patterns
+						try {
+							const options3 = {
+								method: 'POST' as const,
+								url: `https://api.instantly.ai/api/v2/accounts/${emailAccount}/disable-warmup`,
+								headers: {},
+							};
+							return await context.helpers.httpRequestWithAuthentication.call(context, 'instantlyApi', options3);
+						} catch (error3: any) {
+							// All approaches failed, throw the last error
+							throw lastError;
+						}
+					}
+				}
 			}
 		} catch (error: any) {
+			// Enhanced error handling with specific messages
+			const emailAccount = allEmails ? 'accounts' : getEmailAccount(context, itemIndex);
+
+			// Parse the actual error message from the API response
+			let errorMessage = error.message;
+			if (error.response?.body) {
+				if (typeof error.response.body === 'string') {
+					errorMessage = error.response.body;
+				} else if (error.response.body.message) {
+					errorMessage = error.response.body.message;
+				} else if (error.response.body.error) {
+					errorMessage = error.response.body.error;
+				}
+			}
+
 			// Handle specific error cases for warmup disable operation
 			if (error.response?.statusCode === 404) {
-				const emailAccount = allEmails ? 'one or more accounts' : getEmailAccount(context, itemIndex);
 				throw new NodeOperationError(context.getNode(), `Email account '${emailAccount}' not found. Please verify the email address is correct and the account exists in your Instantly workspace.`, { itemIndex });
 			} else if (error.response?.statusCode === 400 || error.response?.statusCode === 422) {
-				// Account might already have warmup disabled or be in an invalid state
-				const errorMessage = error.response?.body?.message || error.message;
-				const emailAccount = allEmails ? 'one or more accounts' : getEmailAccount(context, itemIndex);
-				throw new NodeOperationError(context.getNode(), `Cannot disable warmup for account '${emailAccount}'. ${errorMessage}. The account may already have warmup disabled.`, { itemIndex });
+				// Check for specific warmup status errors
+				if (errorMessage.toLowerCase().includes('already disabled') || errorMessage.toLowerCase().includes('warmup is already paused')) {
+					throw new NodeOperationError(context.getNode(), `Warmup is already disabled for account '${emailAccount}'. No action needed.`, { itemIndex });
+				} else {
+					throw new NodeOperationError(context.getNode(), `Cannot disable warmup for account '${emailAccount}': ${errorMessage}`, { itemIndex });
+				}
 			} else {
-				// Re-throw other errors with more context
-				const emailAccount = allEmails ? 'accounts' : getEmailAccount(context, itemIndex);
-				throw new NodeOperationError(context.getNode(), `Failed to disable warmup for ${emailAccount}: ${error.message}`, { itemIndex });
+				// Re-throw other errors with the actual API error message
+				throw new NodeOperationError(context.getNode(), `Failed to disable warmup for ${emailAccount}: ${errorMessage}`, { itemIndex });
 			}
 		}
 	}
