@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-instantly",
-  "version": "0.1.7526",
+  "version": "0.1.7527",
   "description": "n8n community node for Instantly API v2",
   "keywords": [
     "n8n-community-node-package",
@@ -34,11 +34,14 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/InstantlyApi.credentials.js"
+      "dist/src/credentials/InstantlyApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/InstantlyApi/InstantlyApi.node.js"
+      "dist/src/nodes/InstantlyApi/InstantlyApi.node.js"
     ]
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "devDependencies": {
     "@n8n/node-cli": "*",
