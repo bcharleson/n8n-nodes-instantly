@@ -17,12 +17,6 @@ export async function instantlyApiRequest(
 	body: IDataObject = {},
 	qs: IDataObject = {},
 ): Promise<any> {
-	console.log('Instantly API Request:', {
-		method,
-		url: `https://api.instantly.ai${endpoint}`,
-		qs,
-		body,
-	});
 
 	const options: IHttpRequestOptions = {
 		method,

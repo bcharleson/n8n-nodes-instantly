@@ -248,30 +248,21 @@ export class CampaignOperations {
 
 		// Apply HTML formatting to email content right before API call
 		// This ensures it happens after all n8n expression processing is complete
-		console.log('DEBUG: About to apply HTML conversion...');
 		if (campaignData.sequences && campaignData.sequences[0] && campaignData.sequences[0].steps) {
-			console.log('DEBUG: Found sequences to process, steps count:', campaignData.sequences[0].steps.length);
 			campaignData.sequences[0].steps.forEach((step: any, stepIndex: number) => {
 				if (step.variants && step.variants.length > 0) {
 					step.variants.forEach((variant: any, variantIndex: number) => {
 						if (variant.subject) {
-							console.log(`DEBUG: Converting subject for step ${stepIndex}, variant ${variantIndex}:`, variant.subject);
 							variant.subject = convertToHtmlFormat(variant.subject);
-							console.log(`DEBUG: Subject after conversion:`, variant.subject);
 						}
 						if (variant.body) {
-							console.log(`DEBUG: Converting body for step ${stepIndex}, variant ${variantIndex}:`, variant.body);
 							variant.body = convertToHtmlFormat(variant.body);
-							console.log(`DEBUG: Body after conversion:`, variant.body);
 						}
 					});
 				}
 			});
-		} else {
-			console.log('DEBUG: No sequences found to process');
 		}
 
-		console.log('DEBUG: Final campaignData before API call:', JSON.stringify(campaignData, null, 2));
 		return await instantlyApiRequest.call(context, 'POST', '/api/v2/campaigns', campaignData);
 	}
 

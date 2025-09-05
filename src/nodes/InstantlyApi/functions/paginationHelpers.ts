@@ -27,20 +27,10 @@ export async function paginateInstantlyApi(
 			queryParams.starting_after = startingAfter;
 		}
 
-		console.log(`Fetching page ${pageCount} with params:`, queryParams);
 		const response = await instantlyApiRequest.call(context, 'GET', endpoint, {}, queryParams);
-		console.log(`Page ${pageCount} response:`, {
-			hasItems: !!response.items,
-			itemsLength: response.items?.length || 0,
-			hasNextStartingAfter: !!response.next_starting_after,
-			nextStartingAfter: response.next_starting_after
-		});
 
 		if (response.items && Array.isArray(response.items)) {
 			allItems = allItems.concat(response.items);
-			console.log(`Added ${response.items.length} items. Total so far: ${allItems.length}`);
-		} else {
-			console.log('No items array found in response:', response);
 		}
 
 		// Check if there are more pages
