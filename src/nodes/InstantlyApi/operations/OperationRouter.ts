@@ -3,6 +3,7 @@ import { AccountOperations } from './AccountOperations';
 import { CampaignOperations } from './CampaignOperations';
 import { LeadOperations } from './LeadOperations';
 import { AnalyticsOperations } from './AnalyticsOperations';
+import { SuperSearchEnrichmentOperations } from './SuperSearchEnrichmentOperations';
 import { ResourceType, OperationType } from '../types/common';
 
 /**
@@ -27,6 +28,8 @@ export class OperationRouter {
 				return await this.handleLeadOperation(context, itemIndex, operation);
 			case 'analytics':
 				return await this.handleAnalyticsOperation(context, itemIndex, operation);
+			case 'superSearchEnrichment':
+				return await this.handleSuperSearchEnrichmentOperation(context, itemIndex, operation);
 			default:
 				throw new Error(`Unknown resource: ${resource}`);
 		}
@@ -133,6 +136,34 @@ export class OperationRouter {
 				return await AnalyticsOperations.getCampaignAnalytics(context, itemIndex);
 			default:
 				throw new Error(`Unknown analytics operation: ${operation}`);
+		}
+	}
+
+	/**
+	 * Handle SuperSearch enrichment operations
+	 */
+	private static async handleSuperSearchEnrichmentOperation(
+		context: IExecuteFunctions,
+		itemIndex: number,
+		operation: OperationType
+	): Promise<any> {
+		switch (operation) {
+			case 'create':
+				return await SuperSearchEnrichmentOperations.create(context, itemIndex);
+			case 'get':
+				return await SuperSearchEnrichmentOperations.get(context, itemIndex);
+			case 'run':
+				return await SuperSearchEnrichmentOperations.run(context, itemIndex);
+			case 'addToResource':
+				return await SuperSearchEnrichmentOperations.addToResource(context, itemIndex);
+			case 'runAiEnrichment':
+				return await SuperSearchEnrichmentOperations.runAiEnrichment(context, itemIndex);
+			case 'getJobStatus':
+				return await SuperSearchEnrichmentOperations.getJobStatus(context, itemIndex);
+			case 'getHistory':
+				return await SuperSearchEnrichmentOperations.getHistory(context, itemIndex);
+			default:
+				throw new Error(`Unknown SuperSearch enrichment operation: ${operation}`);
 		}
 	}
 }

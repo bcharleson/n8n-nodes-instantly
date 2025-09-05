@@ -18,6 +18,7 @@ import { leadParameters } from './parameters/LeadParameters';
 import { campaignParameters } from './parameters/CampaignParameters';
 import { accountParameters } from './parameters/AccountParameters';
 import { analyticsParameters } from './parameters/AnalyticsParameters';
+import { superSearchEnrichmentParameters } from './parameters/SuperSearchEnrichmentParameters';
 
 // Helper function to format dates for Instantly API (YYYY-MM-DD format)
 function formatDateForApi(dateInput: any): string {
@@ -298,6 +299,10 @@ export class InstantlyApi implements INodeType {
 						name: 'Lead',
 						value: 'lead',
 					},
+					{
+						name: 'SuperSearch Enrichment',
+						value: 'superSearchEnrichment',
+					},
 				],
 				default: 'campaign',
 			},
@@ -313,6 +318,9 @@ export class InstantlyApi implements INodeType {
 
 			// ANALYTICS OPERATIONS - Using modular parameters
 			...analyticsParameters,
+
+			// SUPERSEARCH ENRICHMENT OPERATIONS - Using modular parameters
+			...superSearchEnrichmentParameters,
 		],
 	};
 
