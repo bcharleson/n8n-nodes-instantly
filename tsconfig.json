@@ -21,9 +21,9 @@
     "noUnusedParameters": false
   },
   "include": [
-    "nodes/InstantlyApi/**/*.ts",
-    "nodes/generic.functions.ts",
-    "credentials/**/*.ts",
+    "src/nodes/InstantlyApi/**/*.ts",
+    "src/nodes/generic.functions.ts",
+    "src/credentials/**/*.ts",
     "index.ts"
   ],
   "exclude": ["node_modules", "dist", "test"]

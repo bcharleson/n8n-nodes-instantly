@@ -258,7 +258,7 @@ async function getLeads(
 
 export class InstantlyApi implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Instantly',
+		displayName: 'Instantly API [DEV-ALL-OPS]',
 		name: 'instantly',
 		icon: 'file:instantly.svg',
 		group: ['transform'],

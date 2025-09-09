@@ -1,13 +1,17 @@
 {
-  "name": "n8n-nodes-instantly",
-  "version": "0.1.7527",
-  "description": "n8n community node for Instantly API v2",
+  "name": "n8n-nodes-instantly-dev",
+  "version": "0.2.1-alpha.1",
+  "description": "n8n community node for Instantly API v2 - TESTING VERSION with ALL 27 operations including SuperSearch Enrichment",
   "keywords": [
     "n8n-community-node-package",
     "instantly",
     "email",
     "outreach",
-    "automation"
+    "automation",
+    "testing",
+    "api-v2",
+    "supersearch",
+    "enrichment"
   ],
   "license": "MIT",
   "homepage": "https://github.com/brandoncharleson/n8n-nodes-instantly",
@@ -26,7 +30,7 @@
     "lint": "n8n-node lint",
     "lint:fix": "n8n-node lint --fix",
     "release": "n8n-node release",
-    "prepublishOnly": "n8n-node prerelease"
+    "prepublishOnly": "npm run build"
   },
   "files": [
     "dist"
@@ -46,6 +50,7 @@
   "devDependencies": {
     "@n8n/node-cli": "*",
     "eslint": "9.32.0",
+    "n8n-workflow": "^1.82.0",
     "prettier": "3.6.2",
     "release-it": "^19.0.4",
     "typescript": "5.9.2"
