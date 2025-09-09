@@ -1,25 +1,32 @@
-# ⚠️ REPOSITORY DEPRECATED - OFFICIAL TRANSFER COMPLETE
+# n8n-nodes-instantly (Experimental Testing Repository)
 
-I am thrilled to announce that this has become the official Instantly n8n integration! This repo is no longer being updated and any developments are pushed to the main repo (listed below).
+⚠️ **This is the experimental testing repository for development and beta testing only.**
 
-## 🔄 This repository has been officially transferred to:
-**[Instantly-ai/n8n-instantly-nodes](https://github.com/Instantly-ai/n8n-instantly-nodes)**
+## 🏢 Official Repository
 
-### 📦 NPM Package Status:
-- **Package Name**: `n8n-nodes-instantly` 
-- **Current Version**: v0.1.7527
-- **Official Repository**: Now points to Instantly-ai organization
-- **Download Stats**: Preserved (5,700+ downloads maintained)
+**For stable, production-ready releases, please use the official repository:**
 
-### 🚀 For Users & Contributors:
-- ✅ **Use Official Repository**: All future development happens at Instantly-ai/n8n-instantly-nodes
-- ✅ **Issues & PRs**: Submit to official repository
-- ✅ **Documentation**: Updated documentation in official repo
-- ✅ **NPM Package**: Same package name, now officially maintained
+👉 **[Instantly-ai/n8n-instantly-nodes](https://github.com/Instantly-ai/n8n-instantly-nodes)** 
 
-### 📅 Transfer Date: Sept, 8, 2025
-### 🏢 Official Maintainer: Brandon Charleson & Instantly.ai
+The official repository contains:
+- ✅ Stable, production-tested code
+- ✅ Official releases and versioning
+- ✅ Community support and documentation
+- ✅ Integration with Instantly's official roadmap
 
----
-**This repository remains for historical reference only.**
-**All active development has moved to the official repository.**
+## 🧪 This Repository Purpose
+
+This `bcharleson/n8n-nodes-instantly` repository is used for:
+
+- 🔬 **Experimental features** and new API endpoint testing
+- 🚧 **Beta testing** of upcoming functionality
+- 🛠️ **Development work** before official releases
+- 📊 **Performance testing** and optimization
+- 🐛 **Bug fixes** and compatibility testing
+
+## 📦 Installation
+
+### For Production Use:
+```bash
+# Install from official repository
+npm install n8n-nodes-instantly
