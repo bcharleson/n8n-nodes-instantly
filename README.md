@@ -102,11 +102,11 @@ npm install n8n-nodes-instantly
 
 - [Instantly API Documentation](https://developer.instantly.ai/api/v2)
 - [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/)
-- [GitHub Repository](https://github.com/Instantly-ai/n8n-instantly-nodes)
+- [GitHub Repository](https://github.com/Instantly-ai/n8n-nodes-instantly)
 
 ## Support
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/Instantly-ai/n8n-instantly-nodes/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/Instantly-ai/n8n-nodes-instantly/issues)
 - **Email**: brandon@instantly.ai
 
 ## License
