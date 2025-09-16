@@ -10,17 +10,17 @@
     "automation"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/Instantly-ai/n8n-instantly-nodes",
+  "homepage": "https://github.com/Instantly-ai/n8n-nodes-instantly",
   "author": {
     "name": "Brandon Charleson",
     "email": "brandon@instantly.ai"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Instantly-ai/n8n-instantly-nodes.git"
+    "url": "git+https://github.com/Instantly-ai/n8n-nodes-instantly.git"
   },
   "bugs": {
-    "url": "https://github.com/Instantly-ai/n8n-instantly-nodes/issues"
+    "url": "https://github.com/Instantly-ai/n8n-nodes-instantly/issues"
   },
   "scripts": {
     "build": "n8n-node build && cp credentials/instantly.svg dist/credentials/ && cp index.js dist/",
