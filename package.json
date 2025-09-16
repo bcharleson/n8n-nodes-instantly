@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-instantly",
-  "version": "0.1.7527",
+  "version": "0.1.7530",
   "description": "n8n community node for Instantly API v2",
   "keywords": [
     "n8n-community-node-package",
@@ -19,8 +19,11 @@
     "type": "git",
     "url": "git+https://github.com/Instantly-ai/n8n-instantly-nodes.git"
   },
+  "bugs": {
+    "url": "https://github.com/Instantly-ai/n8n-instantly-nodes/issues"
+  },
   "scripts": {
-    "build": "n8n-node build",
+    "build": "n8n-node build && cp credentials/instantly.svg dist/credentials/ && cp index.js dist/",
     "build:watch": "tsc --watch",
     "dev": "n8n-node dev",
     "lint": "n8n-node lint",
@@ -34,12 +37,13 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/src/credentials/InstantlyApi.credentials.js"
+      "dist/credentials/InstantlyApi.credentials.js"
     ],
     "nodes": [
       "dist/src/nodes/InstantlyApi/InstantlyApi.node.js"
     ]
   },
+  "main": "dist/index.js",
   "engines": {
     "node": ">=18.0.0"
   },

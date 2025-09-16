@@ -1,0 +1,38 @@
+# Source files
+src/
+
+# Development files
+*.md
+!README.md
+!LICENSE.md
+tsconfig.json
+.env*
+.vscode/
+.idea/
+
+# Build artifacts and duplicates
+dist/package/
+dist/test-package-build/
+dist/src/
+package/
+test-package-build/
+
+# Old package files
+*.tgz
+
+# Node modules
+node_modules/
+
+# Development dependencies
+gulpfile.js
+
+# Testing and development docs
+DEVELOPMENT_*.md
+TESTING_*.md
+ENDPOINT_*.md
+*_TEMPLATE.md
+TEST_*.md
+
+# Exclude source directories from NPM package (but keep them in GitHub for n8n verification)
+credentials/
+nodes/
