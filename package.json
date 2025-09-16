@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-instantly",
-  "version": "0.1.7534",
+  "version": "0.1.7536",
   "description": "n8n community node for Instantly API v2",
   "keywords": [
     "n8n-community-node-package",
@@ -10,14 +10,14 @@
     "automation"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/Instantly-ai/n8n-nodes-instantly",
+  "homepage": "https://n8n.io",
   "author": {
     "name": "Brandon Charleson",
     "email": "brandon@instantly.ai"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Instantly-ai/n8n-nodes-instantly.git"
+    "url": "https://github.com/Instantly-ai/n8n-nodes-instantly.git"
   },
   "bugs": {
     "url": "https://github.com/Instantly-ai/n8n-nodes-instantly/issues"
@@ -45,6 +45,9 @@
   "main": "dist/index.js",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "peerDependencies": {
+    "n8n-workflow": ">=1.0.0"
   },
   "devDependencies": {
     "@n8n/node-cli": "*",
