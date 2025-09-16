@@ -34,7 +34,7 @@ export class InstantlyApi implements ICredentialType {
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: 'https://api.instantly.ai/v2',
-			url: '/accounts/info',
+			url: '/workspaces/current',
 			method: 'GET',
 		},
 	};
