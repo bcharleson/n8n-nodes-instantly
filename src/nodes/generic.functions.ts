@@ -20,7 +20,7 @@ export async function instantlyApiRequest(
 
 	const options: IHttpRequestOptions = {
 		method,
-		url: `https://api.instantly.ai${endpoint}`,
+		url: `https://api.instantly.ai/api/v2${endpoint}`,
 		headers: {
 			'Accept': 'application/json',
 		},
