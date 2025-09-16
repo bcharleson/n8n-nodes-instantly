@@ -21,10 +21,10 @@
     "noUnusedParameters": false
   },
   "include": [
-    "src/nodes/InstantlyApi/**/*.ts",
-    "src/nodes/generic.functions.ts",
-    "credentials/**/*.ts",
-    "index.ts"
+    "nodes/**/*",
+    "nodes/**/*.json",
+    "credentials/**/*",
+    "package.json"
   ],
   "exclude": ["node_modules", "dist", "test"]
 }
