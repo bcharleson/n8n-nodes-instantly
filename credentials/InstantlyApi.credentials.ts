@@ -2,6 +2,7 @@ import {
 	IAuthenticateGeneric,
 	ICredentialType,
 	INodeProperties,
+	ICredentialTestRequest,
 } from 'n8n-workflow';
 
 export class InstantlyApi implements ICredentialType {
@@ -27,6 +28,14 @@ export class InstantlyApi implements ICredentialType {
 			headers: {
 				'Authorization': '=Bearer {{$credentials.apiKey}}',
 			},
+		},
+	};
+
+	test: ICredentialTestRequest = {
+		request: {
+			baseURL: 'https://api.instantly.ai/v2',
+			url: '/accounts/info',
+			method: 'GET',
 		},
 	};
 }
