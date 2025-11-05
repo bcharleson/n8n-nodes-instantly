@@ -14,116 +14,12 @@ import {
 import { instantlyApiRequest } from '../generic.functions';
 import { OperationRouter } from './operations/OperationRouter';
 import { ResourceType, OperationType } from './types/common';
+import { formatDateForApi } from './functions/dateHelpers';
+import { paginateInstantlyApi } from './functions/paginationHelpers';
 import { leadParameters } from './parameters/LeadParameters';
 import { campaignParameters } from './parameters/CampaignParameters';
 import { accountParameters } from './parameters/AccountParameters';
 import { analyticsParameters } from './parameters/AnalyticsParameters';
-
-// Helper function to format dates for Instantly API (YYYY-MM-DD format)
-function formatDateForApi(dateInput: any): string {
-	if (!dateInput || dateInput === '') {
-		return '';
-	}
-
-	let dateString = String(dateInput);
-
-	// Handle n8n DateTime objects that come as "[DateTime: 2025-06-26T13:52:08.271Z]"
-	if (dateString.startsWith('[DateTime: ') && dateString.endsWith(']')) {
-		dateString = dateString.slice(11, -1); // Remove "[DateTime: " and "]"
-	}
-
-	// Handle ISO datetime strings (e.g., "2025-06-19T13:52:45.316Z")
-	if (dateString.includes('T')) {
-		dateString = dateString.split('T')[0];
-	}
-
-	// Handle date strings that might have time components separated by space
-	if (dateString.includes(' ')) {
-		dateString = dateString.split(' ')[0];
-	}
-
-	// Validate the resulting date format (should be YYYY-MM-DD)
-	const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-	if (!dateRegex.test(dateString)) {
-		// Try to parse as Date and format
-		try {
-			const parsedDate = new Date(dateInput);
-			if (!isNaN(parsedDate.getTime())) {
-				// Format as YYYY-MM-DD
-				const year = parsedDate.getFullYear();
-				const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
-				const day = String(parsedDate.getDate()).padStart(2, '0');
-				return `${year}-${month}-${day}`;
-			}
-		} catch (error) {
-			console.warn('Failed to parse date:', dateInput, error);
-		}
-
-		// If all parsing fails, return empty string to avoid API errors
-		console.warn('Invalid date format for Instantly API:', dateInput);
-		return '';
-	}
-
-	return dateString;
-}
-
-// Helper function for pagination
-async function paginateInstantlyApi(
-	context: IExecuteFunctions,
-	endpoint: string,
-	resourceName: string,
-): Promise<any[]> {
-	let allItems: any[] = [];
-	let startingAfter: string | undefined;
-	let hasMore = true;
-	let pageCount = 0;
-
-
-
-	while (hasMore) {
-		pageCount++;
-		const queryParams: any = { limit: 100 }; // Use max limit for efficiency
-		if (startingAfter) {
-			queryParams.starting_after = startingAfter;
-		}
-
-		const response = await instantlyApiRequest.call(context, 'GET', endpoint, {}, queryParams);
-
-		// Handle response structure - items are in 'items' array for paginated responses
-		let itemsData: any[] = [];
-		if (response.items && Array.isArray(response.items)) {
-			itemsData = response.items;
-		} else if (response.data && Array.isArray(response.data)) {
-			itemsData = response.data;
-		} else if (Array.isArray(response)) {
-			itemsData = response;
-		} else {
-			console.warn('Unexpected response structure:', response);
-		}
-
-		if (itemsData.length > 0) {
-			allItems = allItems.concat(itemsData);
-		} else {
-			hasMore = false;
-		}
-
-		// Check if there are more pages using next_starting_after
-		if (response.next_starting_after && itemsData.length > 0) {
-			startingAfter = response.next_starting_after;
-		} else {
-			hasMore = false;
-		}
-
-		// Safety check to prevent infinite loops
-		if (pageCount > 1000) {
-			console.warn('Pagination stopped after 1000 pages to prevent infinite loop');
-			break;
-		}
-	}
-
-
-	return allItems;
-}
 
 // Helper function to get campaigns for dropdown
 async function getCampaigns(
