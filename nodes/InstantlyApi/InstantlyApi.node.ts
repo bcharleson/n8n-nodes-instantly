@@ -20,6 +20,7 @@ import { leadParameters } from './parameters/LeadParameters';
 import { campaignParameters } from './parameters/CampaignParameters';
 import { accountParameters } from './parameters/AccountParameters';
 import { analyticsParameters } from './parameters/AnalyticsParameters';
+import { uniboxParameters } from './parameters/UniboxParameters';
 
 // Helper function to get campaigns for dropdown
 async function getCampaigns(
@@ -181,18 +182,27 @@ export class InstantlyApi implements INodeType {
 					{
 						name: 'Account',
 						value: 'account',
+						description: 'Manage SMTP email accounts for sending',
 					},
 					{
 						name: 'Analytics',
 						value: 'analytics',
+						description: 'Get campaign and account analytics',
 					},
 					{
 						name: 'Campaign',
 						value: 'campaign',
+						description: 'Manage email campaigns',
 					},
 					{
 						name: 'Lead',
 						value: 'lead',
+						description: 'Manage leads and contacts',
+					},
+					{
+						name: 'Unibox',
+						value: 'unibox',
+						description: 'Manage inbox messages and conversations',
 					},
 				],
 				default: 'campaign',
@@ -209,6 +219,9 @@ export class InstantlyApi implements INodeType {
 
 			// ANALYTICS OPERATIONS - Using modular parameters
 			...analyticsParameters,
+
+			// UNIBOX OPERATIONS - Using modular parameters
+			...uniboxParameters,
 		],
 	};
 
@@ -256,6 +269,9 @@ export class InstantlyApi implements INodeType {
 					responseData = await OperationRouter.execute(this, i, resource as ResourceType, operation as OperationType);
 				} else if (resource === 'analytics') {
 					// Use the modular OperationRouter for Analytics operations
+					responseData = await OperationRouter.execute(this, i, resource as ResourceType, operation as OperationType);
+				} else if (resource === 'unibox') {
+					// Use the modular OperationRouter for Unibox operations
 					responseData = await OperationRouter.execute(this, i, resource as ResourceType, operation as OperationType);
 				}
 
