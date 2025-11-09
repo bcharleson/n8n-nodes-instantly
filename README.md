@@ -79,13 +79,23 @@ npm install n8n-nodes-instantly
 ### 📊 **Analytics & Reporting**
 - **Get Campaign Analytics**: Retrieve comprehensive campaign performance metrics and statistics
 
+### 📬 **Unibox Email Management**
+- **Get Many Unibox Messages**: List inbox messages with advanced filtering (search, campaign, account, read status, email type, lead, sort)
+- **Get Unibox Message**: Retrieve single message details by ID
+- **Update Unibox Message**: Modify message properties and metadata
+- **Delete Unibox Message**: Remove messages from inbox
+- **Get Unread Count**: Count unread messages in inbox
+- **Mark Thread as Read**: Mark entire email thread as read
+- **Reply to Unibox Message**: Send email replies directly from n8n
+
 ## Key Features
 
 🚀 **Full API v2 Support**: Complete integration with Instantly's latest API
-📊 **Comprehensive Operations**: 24 operations across campaigns, accounts, leads, and analytics
+📊 **Comprehensive Operations**: 31 operations across campaigns, accounts, leads, analytics, and email management
 ⚡ **Advanced Account Management**: Full warmup control and SMTP configuration
 🎯 **Campaign Control**: Launch, pause, and manage email campaigns with precision
 📈 **Lead Management**: Complete lead lifecycle management and campaign assignment
+📬 **Email Management**: Unified inbox with thread management, filtering, and reply capabilities
 🔄 **Pagination Support**: Handle large datasets efficiently with built-in pagination
 ⚡ **Robust Error Handling**: Detailed error feedback and validation
 🎯 **Resource Locators**: Intuitive account and campaign selection interface
