@@ -3,6 +3,7 @@ import { AccountOperations } from './AccountOperations';
 import { CampaignOperations } from './CampaignOperations';
 import { LeadOperations } from './LeadOperations';
 import { AnalyticsOperations } from './AnalyticsOperations';
+import { UniboxOperations } from './UniboxOperations';
 import { ResourceType, OperationType } from '../types/common';
 
 /**
@@ -27,6 +28,8 @@ export class OperationRouter {
 				return await this.handleLeadOperation(context, itemIndex, operation);
 			case 'analytics':
 				return await this.handleAnalyticsOperation(context, itemIndex, operation);
+			case 'unibox':
+				return await this.handleUniboxOperation(context, itemIndex, operation);
 			default:
 				throw new Error(`Unknown resource: ${resource}`);
 		}
@@ -133,6 +136,34 @@ export class OperationRouter {
 				return await AnalyticsOperations.getCampaignAnalytics(context, itemIndex);
 			default:
 				throw new Error(`Unknown analytics operation: ${operation}`);
+		}
+	}
+
+	/**
+	 * Handle Unibox operations
+	 */
+	private static async handleUniboxOperation(
+		context: IExecuteFunctions,
+		itemIndex: number,
+		operation: OperationType
+	): Promise<any> {
+		switch (operation) {
+			case 'getMany':
+				return await UniboxOperations.getMany(context, itemIndex);
+			case 'get':
+				return await UniboxOperations.get(context, itemIndex);
+			case 'reply':
+				return await UniboxOperations.reply(context, itemIndex);
+			case 'update':
+				return await UniboxOperations.update(context, itemIndex);
+			case 'delete':
+				return await UniboxOperations.delete(context, itemIndex);
+			case 'getUnreadCount':
+				return await UniboxOperations.getUnreadCount(context, itemIndex);
+			case 'markThreadAsRead':
+				return await UniboxOperations.markThreadAsRead(context, itemIndex);
+			default:
+				throw new Error(`Unknown unibox operation: ${operation}`);
 		}
 	}
 }

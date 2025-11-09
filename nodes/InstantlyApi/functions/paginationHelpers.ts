@@ -29,12 +29,28 @@ export async function paginateInstantlyApi(
 
 		const response = await instantlyApiRequest.call(context, 'GET', endpoint, {}, queryParams);
 
+		// Handle response structure - items are in 'items' array for paginated responses
+		let itemsData: any[] = [];
 		if (response.items && Array.isArray(response.items)) {
-			allItems = allItems.concat(response.items);
+			itemsData = response.items;
+		} else if (response.data && Array.isArray(response.data)) {
+			itemsData = response.data;
+		} else if (Array.isArray(response)) {
+			itemsData = response;
+		} else {
+			console.warn('Unexpected response structure:', response);
 		}
 
-		// Check if there are more pages
-		if (response.next_starting_after) {
+		if (itemsData.length > 0) {
+			allItems = allItems.concat(itemsData);
+			console.log(`Page ${pageCount}: Retrieved ${itemsData.length} items. Total so far: ${allItems.length}`);
+		} else {
+			hasMore = false;
+			console.log('No items in response. Stopping pagination.');
+		}
+
+		// Check if there are more pages using next_starting_after
+		if (response.next_starting_after && itemsData.length > 0) {
 			startingAfter = response.next_starting_after;
 			console.log(`More pages available. Next starting_after: ${startingAfter}`);
 		} else {
@@ -44,7 +60,7 @@ export async function paginateInstantlyApi(
 
 		// Safety check to prevent infinite loops
 		if (pageCount > 1000) {
-			console.warn('Pagination safety limit reached (1000 pages). Stopping.');
+			console.warn('Pagination stopped after 1000 pages to prevent infinite loop');
 			break;
 		}
 	}
