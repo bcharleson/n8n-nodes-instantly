@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-instantly",
-  "version": "0.1.7546",
+  "version": "0.1.7547",
   "description": "n8n community node for Instantly API v2",
   "keywords": [
     "n8n-community-node-package",
@@ -31,7 +31,9 @@
     "release": "n8n-node release"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE.md"
   ],
   "n8n": {
     "n8nNodesApiVersion": 1,
